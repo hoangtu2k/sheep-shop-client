@@ -51,7 +51,7 @@ const SignUp = () => {
             </p>
 
             <div className="w-100 mt-4">
-              <Link to={"/"}>
+              <Link to={"/admin"}>
                 <Button className="btn-blue btn-lg btn-big">
                   <IoMdHome /> Go To Home
                 </Button>

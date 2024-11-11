@@ -15,8 +15,9 @@ import Pagination from "@mui/material/Pagination";
 
 import axios from '../../utils/axiosConfig';
 
+import { toast } from 'react-toastify';
 import { MyContext } from "../../App";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 
 const StyledBreadcrumb = styled(Chip)(({ theme }) => {
@@ -42,7 +43,8 @@ const StyledBreadcrumb = styled(Chip)(({ theme }) => {
 
 const Users = () => {
     const context = useContext(MyContext);
-   
+    const navigate = useNavigate();
+    
     
     const [showBy, setshowBy] = useState("");
     const [showBysetCatBy, setCatBy] = useState("");
@@ -58,6 +60,20 @@ const Users = () => {
     };
 
     const [users, setUsers] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const resultsPerPage = 5;
+
+    const totalResults = users.length;
+    const totalPages = Math.ceil(totalResults / resultsPerPage);
+    
+    const indexOfLastUser = currentPage * resultsPerPage;
+    const indexOfFirstUser = indexOfLastUser - resultsPerPage;
+    const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     const formatTimestamp = (timestamp) => {
         const date = new Date(timestamp);
         const day = String(date.getDate()).padStart(2, '0');
@@ -66,21 +82,35 @@ const Users = () => {
         return `${day}/${month}/${year}`;
     };
 
+    const fetchUsers = async () => {
+        try {
+            const response = await axios.get('/admin/users'); // Adjust the URL as needed
+            setUsers(response.data);
+        } catch (error) {
+            toast.error('Error fetching users: ' + (error.response?.data || error.message));
+        }
+    };
+
     useEffect(() => {
 
-        
+        fetchUsers();
 
         context.setisHideSidebarAndHeader(false);
         window.scrollTo(0, 0);
     }, []);
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            const response = await axios.get('/admin/users');
-            setUsers(response.data);
-        };
-        fetchUsers();
-    }, []);
+
+    const handleDeleteUser = async (id) => {
+        try {
+            await axios.post(`/admin/users/delete/${id}`); // Adjust the URL as needed
+            toast.success('User deleted successfully!');
+            fetchUsers(); // Refresh the user list after deletion
+            // Optionally, navigate to another page
+            // navigate('/admin/users'); // Uncomment if you want to navigate
+        } catch (error) {
+            toast.error('Error deleting user: ' + (error.response?.data || error.message));
+        }
+    };
 
     return (
         <>
@@ -161,7 +191,7 @@ const Users = () => {
                         </thead>
                         <tbody>
                                                                                                                        
-                                {users.map(user => (
+                        {currentUsers.map(user => (
                                     <tr key={user.id}>
                                 <td>{user.code}</td>
                                 <td>
@@ -177,7 +207,7 @@ const Users = () => {
                                         </div>
                                         <div className="info pl-3">
                                             <h6>{user.name} </h6>
-                                            <p>{user.roleName}</p>
+                                            <p>[ {user.roleName === null ? "Không xác định": user.roleName } ]</p>
                                         </div>
                                     </div>
                                 </td>
@@ -187,21 +217,20 @@ const Users = () => {
                                 <td>{user.gender === 1 ? "Nam" : user.gender === 0 ? "Nữ" : "Khác"}</td>
                                 <td>
                                     <div className="actions d-flex align-items-center">
-                                        <Link to={`/users/details/${user.id}`}>
+                                        <Link to={`/admin/users/details/${user.id}`}>
                                             <Button className="secondary" color="secondary">
                                             <FaEye />
                                             </Button>
                                             </Link> 
-                                        <Link to={`/users/update/${user.id}`}>
+                                        <Link to={`/admin/users/update/${user.id}`}>
                                             <Button className="success" color="success">
                                                 <FaPencilAlt />
                                             </Button>
-                                        </Link>
-                                        <Link to={`/users/delete/${user.id}`}>
-                                            <Button className="error" color="error">
+                                        </Link>                                      
+                                        <Button className="error" color="error" onClick={() => handleDeleteUser(user.id)} >
                                                 <MdDelete />
-                                            </Button>
-                                        </Link>
+                                        </Button>
+                                        
                                     </div>
                                 </td>
                                 </tr>
@@ -210,16 +239,15 @@ const Users = () => {
                         </tbody>
                     </table>
 
-
-
                     <div className="d-flex tableFooter">
-                       
                         <p>
-                        {/* Hiển thị <b>{currentResults.length}</b> trong <b>{totalResults}</b> kết quả */}
+                            Hiển thị <b>{currentUsers.length}</b> trong <b>{totalResults}</b> kết quả
                         </p>
 
                         <Pagination
-                            count={10}
+                            count={totalPages}
+                            page={currentPage}
+                            onChange={handlePageChange}
                             showFirstButton
                             showLastButton
                             color="primary"

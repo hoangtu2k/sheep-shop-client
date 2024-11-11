@@ -5,15 +5,12 @@ import Breadcrumb from "@mui/material/Breadcrumbs";
 import { emphasize, styled } from "@mui/material/styles";
 import Chip from "@mui/material/Chip";
 import HomeIcon from "@mui/icons-material/Home";
-
 import Button from "@mui/material/Button";
 import { MenuItem, Select } from "@mui/material";
-
 import { LazyLoadImage } from "react-lazy-load-image-component";
-
 import { FaCloudUploadAlt, FaRegImages } from "react-icons/fa";
 import { IoCloseSharp } from "react-icons/io5";
-import { useParams  } from "react-router-dom";
+import { useNavigate, useParams  } from "react-router-dom";
 
 import axios from '../../utils/axiosConfig';
 
@@ -39,6 +36,7 @@ const StyledBreadcrumb = styled(Chip)(({ theme }) => {
 
 const UserUpdate = () => {
 
+    const navigate = useNavigate();
    
     const { id } = useParams();
     const [code, setCode] = useState('');
@@ -47,9 +45,25 @@ const UserUpdate = () => {
     const [phone, setPhone] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [gender, setGender] = useState("");
+    const [account, setAccount] = useState('');
+    const [accountsList, setAccountsList] = useState([]);
 
 
     useEffect(() => {
+      const fetchAccounts = async () => {
+          try {
+              const response = await axios.get('/admin/account'); // Replace with your API endpoint
+              setAccountsList(response.data);
+          } catch (error) {
+              console.error('Error fetching accounts:', error);
+          }
+      };
+
+      fetchAccounts();
+     }, []);
+
+    useEffect(() => {
+
         const fetchUser = async () => {
             const response = await axios.get(`/admin/users/${id}`);
             setCode(response.data.code);
@@ -63,31 +77,40 @@ const UserUpdate = () => {
             if (response.data.gender !== undefined) { // Kiểm tra nếu có trường giới tính
                 setGender(response.data.gender); // Gán giá trị giới tính từ API
             }
+
         };
         fetchUser();
+        
     }, [id]);
 
     const formatDate = (timestamp) => {
         const date = new Date(timestamp);
-        return date.toISOString().split('T')[0]; // Chuyển đổi thành định dạng yyyy-MM-dd
+        return date.toISOString().split('T')[0];
     };
 
     const handleChangeGender = (e) => {
-        setGender(e.target.value); // Cập nhật giá trị giới tính
+        setGender(e.target.value);
     };
+
+    const handleChangeAccount = (e) => {
+      setAccount(e.target.value);
+  };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`/users/${id}`, { 
+            await axios.put(`/admin/users/${id}`, { 
+                code: code, 
                 name: name, 
                 email: email, 
                 phone: phone, 
                 dateOfBirth: dateOfBirth, 
-                gender: gender // Gửi giới tính cùng với tên và ngày sinh
+                gender: gender,
+                accountId: account
             });
+            navigate('/admin/users'); // Điều hướng đến trang chính
         } catch (error) {
-            console.error('Error updating user:', error);
+            console.error('Lỗi cập nhật người dùng:', error);
         }
     };
 
@@ -132,7 +155,11 @@ const UserUpdate = () => {
                 <div className="col">
                 <div className="form-group">
                       <h6>Mã nhân viên</h6>
-                      <input value={code}  disabled/>
+                      <input 
+                        type="text" 
+                        value={code} 
+                        onChange={(e) => setCode(e.target.value)}                        
+                        />
                     </div>
                   </div>
                   <div className="col">
@@ -200,11 +227,27 @@ const UserUpdate = () => {
                         </div>
                     </div>
                 </div>
-             
-                <div className="form-group mt-3">
-                  <h6>Mô tả</h6>
-                  <textarea rows={5} cols={10} />
+
+                <div className="row">
+                        <div className="col">
+                            <h6>Tài khoản đăng nhập</h6>
+                            <Select
+                                value={account}
+                                onChange={handleChangeAccount}
+                                displayEmpty
+                                inputProps={{ 'aria-label': 'Without label' }}
+                                className="w-100"
+                            >   
+                                   <MenuItem value=""><em>None</em></MenuItem>                
+                            {accountsList.map((acc) => (
+                                <MenuItem key={acc.id} value={acc.id}>
+                                    {acc.username}
+                                </MenuItem>
+                            ))}
+                            </Select>
+                    </div>                  
                 </div>
+             
               </div>
             </div>
           </div>

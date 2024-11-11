@@ -29,7 +29,7 @@ const Sidebar = () => {
     localStorage.removeItem('token');
   
     // Điều hướng đến trang đăng nhập hoặc trang chính
-    navigate('/login'); // Sử dụng navigate để điều hướng
+    navigate('/admin/login'); // Sử dụng navigate để điều hướng
   };
 
 
@@ -38,7 +38,7 @@ const Sidebar = () => {
             <div className="sidebar">
                 <ul>
                     <li>
-                        <Link to="/dashboard">
+                        <Link to="/admin/dashboard">
                             <Button className={`w-100 ${activeTab === 0 ? 'active': ''}`}>
                                 <span className="icon"><MdDashboard /></span>
                                 Tổng quan
@@ -56,9 +56,9 @@ const Sidebar = () => {
                             
                             <div className={`submenuWrapper ${activeTab === 1 && isToggleSubmenu ===true ? 'colapse': 'colapsed'} `}>
                                 <ul className="submenu">
-                                    <li><Link to="/products">Danh sách sản phẩm</Link></li>
-                                    <li><Link to="/product/details">Chi tiết sản phẩm</Link></li>
-                                    <li><Link to="/product/upload">Tải lên sản phẩm</Link></li>
+                                    <li><Link to="/admin/products">Danh sách sản phẩm</Link></li>
+                                    <li><Link to="/admin/product/details">Chi tiết sản phẩm</Link></li>
+                                    <li><Link to="/admin/product/upload">Tải lên sản phẩm</Link></li>
                                 </ul>
                             </div>
                                   
@@ -81,7 +81,7 @@ const Sidebar = () => {
                             
                             <div className={`submenuWrapper ${activeTab === 3 && isToggleSubmenu ===true ? 'colapse': 'colapsed'} `}>
                                 <ul className="submenu">
-                                    <li><Link to="/users">Danh sách nhân viên</Link></li>
+                                    <li><Link to="/admin/users">Danh sách nhân viên</Link></li>
                                     <li><Link to="/">Lịch làm việc</Link></li>
                                     <li><Link to="/">Thiết lập nhân viên</Link></li>
                                 </ul>

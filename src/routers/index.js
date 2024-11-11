@@ -9,21 +9,23 @@ import ProductUpload from "../pages/ProductUpload";
 import Users from "../pages/User/UserList.js";
 import UserAdd from "../pages/User/UserAdd.js";
 import UserUpdate from "../pages/User/UserUpdate.js";
+import UserDetails from "../pages/User/UserDetails.js";
 
 const publicRouters = [
 
-        { path: '/login', component: Login },
-        { path: '/signUp', component: SignUp },
+        { path: '/admin/login', component: Login },
+        { path: '/admin/signUp', component: SignUp },
 
-        { path: '/', component: Dashboard , private: true},
-        { path: '/dashboard', component: Dashboard, private: true },
-        { path: '/products', component: Products, private: true },
-        { path: '/product/details', component: ProductDetails, private: true },
-        { path: '/product/upload', component: ProductUpload, private: true },
+        { path: '/admin/', component: Dashboard , private: true},
+        { path: '/admin/dashboard', component: Dashboard, private: true },
+        { path: '/admin/products', component: Products, private: true },
+        { path: '/admin/product/details', component: ProductDetails, private: true },
+        { path: '/admin/product/upload', component: ProductUpload, private: true },
 
-        { path: '/users', component: Users , private: true},
-        { path: '/users/add', component: UserAdd , private: true},
-        { path: '/users/update/:id', component: UserUpdate , private: true},
+        { path: '/admin/users', component: Users , private: true},
+        { path: '/admin/users/add', component: UserAdd , private: true},
+        { path: '/admin/users/update/:id', component: UserUpdate , private: true},
+        { path: '/admin/users/details/:id', component: UserDetails , private: true},
 
       ];
 

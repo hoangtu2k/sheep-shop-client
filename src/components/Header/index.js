@@ -67,7 +67,7 @@ const Header = () => {
           <div className="row d-flex align-items-center w-100">
             {/*Logo wraooer */}
             <div className="col-sm-2 part1">
-              <Link to={"/"} className="d-flex align-items-center logo">
+              <Link to={"/admin"} className="d-flex align-items-center logo">
                 <img src={logo} alt=""/>
                 <span className="ml-2">HOTASH</span>
               </Link>

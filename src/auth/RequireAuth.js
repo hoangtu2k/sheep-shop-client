@@ -7,7 +7,7 @@ const RequireAuth = ({ children }) => {
 
   if (!isAuthenticated) {
     // Nếu chưa đăng nhập, chuyển hướng về trang login
-    return <Navigate to="/login" />;
+    return <Navigate to="/admin/login" />;
   }
 
   return children; // Nếu đã đăng nhập, hiển thị các component con
