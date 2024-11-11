@@ -72,7 +72,7 @@ const Login = () => {
         const token = response.data.token;
 
         // Bước 2: Gửi yêu cầu để lấy thông tin người dùng
-        const userResponse = await axios.get('/admin/user', {
+        const userResponse = await axios.get('/admin/users', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

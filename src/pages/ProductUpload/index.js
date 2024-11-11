@@ -80,7 +80,7 @@ const ProductUpload = () => {
                 <div className="row">
                     <div className="col-md-7">
                         <div className="card p-4 mt-0">
-                            <h5 class="mb-4">Thông tin cơ bản</h5>
+                            <h5 className="mb-4">Thông tin cơ bản</h5>
                             
                             <div className="form-group">
                                     <h6>Tên</h6>
@@ -161,7 +161,7 @@ const ProductUpload = () => {
 
                 <div className="card p-4 mt-0">
                     <div className="imagesUploadSec">
-                            <h5 class="mb-4">Media And Published</h5>
+                            <h5 className="mb-4">Media And Published</h5>
                             <div className="imgUploadBox d-flex align-items-center">
 
                                     <div className="uploadBox">

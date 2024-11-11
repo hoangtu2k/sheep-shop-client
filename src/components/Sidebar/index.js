@@ -8,6 +8,7 @@ import { MdDashboard, MdMessage } from "react-icons/md";
 import { IoIosSettings } from "react-icons/io";
 import { IoMdLogOut } from "react-icons/io";
 import { MyContext } from '../../App';
+import { HiUsers } from "react-icons/hi";
 
 const Sidebar = () => {
 
@@ -41,7 +42,7 @@ const Sidebar = () => {
                             <Button className={`w-100 ${activeTab === 0 ? 'active': ''}`}>
                                 <span className="icon"><MdDashboard /></span>
                                 Tổng quan
-                                <span className="arrow"><FaAngleRight /></span>
+                                <span className="arrow"></span>
                             </Button>
                         </Link>
                     </li>
@@ -71,9 +72,24 @@ const Sidebar = () => {
                             </Button>
                         </Link>
                     </li>
+                    <li>                      
+                            <Button className={`w-100 ${activeTab === 3 && isToggleSubmenu ===true ? 'active': ''}`} onClick={()=>isOpenSubmenu(3)}>
+                                <span className="icon"><HiUsers /></span>
+                                Nhân viên
+                                <span className="arrow"><FaAngleRight /></span>
+                            </Button>
+                            
+                            <div className={`submenuWrapper ${activeTab === 3 && isToggleSubmenu ===true ? 'colapse': 'colapsed'} `}>
+                                <ul className="submenu">
+                                    <li><Link to="/users">Danh sách nhân viên</Link></li>
+                                    <li><Link to="/">Lịch làm việc</Link></li>
+                                    <li><Link to="/">Thiết lập nhân viên</Link></li>
+                                </ul>
+                            </div>
+                    </li>
                     <li>
                         <Link to="/">
-                            <Button className={`w-100 ${activeTab === 3 ? 'active': ''}`}>
+                            <Button className={`w-100 ${activeTab === 4 ? 'active': ''}`}>
                                 <span className="icon"><MdMessage /></span>
                                 Tin nhắn
                                 <span className="arrow"><FaAngleRight /></span>
@@ -82,7 +98,7 @@ const Sidebar = () => {
                     </li>
                     <li>
                         <Link to="/">
-                            <Button className={`w-100 ${activeTab === 4 ? 'active': ''}`}>
+                            <Button className={`w-100 ${activeTab === 5 ? 'active': ''}`}>
                                 <span className="icon"><FaBell /></span>
                                 Thông báo
                                 <span className="arrow"><FaAngleRight /></span>
@@ -91,7 +107,7 @@ const Sidebar = () => {
                     </li>
                     <li>
                         <Link to="/">
-                            <Button className={`w-100 ${activeTab === 5 ? 'active': ''}`}>
+                            <Button className={`w-100 ${activeTab === 6 ? 'active': ''}`}>
                                 <span className="icon"><IoIosSettings /></span>
                                 Cài đặt
                                 <span className="arrow"><FaAngleRight /></span>

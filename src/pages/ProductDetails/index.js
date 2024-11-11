@@ -398,7 +398,7 @@ const ProductDetails = () => {
 
                                     <h6 className="mt-4 mb-4">Xem lại mẫu trả lời</h6>
 
-                                    <form class="reviewForm">
+                                    <form className="reviewForm">
                                         <textarea placeholder="Viết ở đây "></textarea>
                                         <Button className='btn-blue btn-big btn-lg w-100 mt-4'>Câu trả lời của bạn</Button>
                                     </form>
