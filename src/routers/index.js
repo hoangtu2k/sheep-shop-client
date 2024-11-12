@@ -20,9 +20,10 @@ const publicRouters = [
         { path: '/', component: Dashboard , private: true},
         { path: '/admin/', component: Dashboard , private: true},
         { path: '/admin/dashboard', component: Dashboard, private: true },
-        { path: '/admin/products', component: Products, private: true },
-        { path: '/admin/product/details', component: ProductDetails, private: true },
-        { path: '/admin/product/upload', component: ProductUpload, private: true },
+        
+        { path: '/admin/products', component: Products },
+        { path: '/admin/product/details', component: ProductDetails},
+        { path: '/admin/product/upload', component: ProductUpload },
 
         { path: '/admin/users', component: Users , private: true},
         { path: '/admin/users/add', component: UserAdd , private: true},
