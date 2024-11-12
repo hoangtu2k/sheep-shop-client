@@ -38,6 +38,10 @@ const UserDetails = () => {
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [gender, setGender] = useState("");
 
+    const [roleName, setRoleName] = useState("");
+
+    const [image, setImage] = useState(null);
+
     useEffect(() => {
         const fetchUser = async () => {
             const response = await axios.get(`/admin/users/${id}`);
@@ -45,6 +49,12 @@ const UserDetails = () => {
             setName(response.data.name);
             setEmail(response.data.email);
             setPhone(response.data.phone);
+            setRoleName(response.data.account.role.name);
+            // Lấy URL ảnh từ response và cập nhật imagePreview
+            if (response.data.image) {
+                setImage(response.data.image); // Lưu URL ảnh vào state
+            }
+
             // Chuyển đổi timestamp thành định dạng yyyy-MM-dd
             if (response.data.dateOfBirth) {
                 setDateOfBirth(formatDate(response.data.dateOfBirth));
@@ -104,7 +114,7 @@ const UserDetails = () => {
 
                                         <div className='sliderBig mb-2'>
                                                 <div className='item'>
-                                                    <img src="https://acc957.com/Img/TaiKhoan.png" className='w-100' alt=''/>
+                                                    <img src={image} className='w-100' alt=''/>
                                                 </div>
                                         </div>
 
@@ -117,9 +127,18 @@ const UserDetails = () => {
                                         <div className='sliderWrapper  pt-3 pb-3 pl-4 pr-4'>
                                                 <h6 className='mb-4'>Thông tin nhân viên</h6>
 
-                                                <h4>Mã nhân viên: {code}</h4>
+                                                <h4>Chức danh: {roleName}</h4>
 
-                                                <div className='productInfo mt-4'>
+                                                <div className='productInfo mt-4'>                                           
+                                                        <div className='row mb-2'>
+                                                            <div className="col-sm-3 d-flex align-items-center">
+                                                                        
+                                                                        <span className='name'>Mã nhân viên</span>
+                                                            </div>
+                                                            <div className="col-sm-9">
+                                                                     <span>{code}</span>
+                                                            </div>
+                                                        </div>
                                                         <div className='row mb-2'>
                                                             <div className="col-sm-3 d-flex align-items-center">
                                                                         

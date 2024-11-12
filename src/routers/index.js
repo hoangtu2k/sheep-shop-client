@@ -10,6 +10,7 @@ import Users from "../pages/User/UserList.js";
 import UserAdd from "../pages/User/UserAdd.js";
 import UserUpdate from "../pages/User/UserUpdate.js";
 import UserDetails from "../pages/User/UserDetails.js";
+import Sell from "../pages/Sell/index.js";
 
 const publicRouters = [
 
@@ -27,6 +28,8 @@ const publicRouters = [
         { path: '/admin/users/add', component: UserAdd , private: true},
         { path: '/admin/users/update/:id', component: UserUpdate , private: true},
         { path: '/admin/users/details/:id', component: UserDetails , private: true},
+
+        { path: '/sale', component: Sell},
 
       ];
 

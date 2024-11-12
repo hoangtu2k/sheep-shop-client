@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, useNavigate  } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 import Button from "@mui/material/Button";
 import { MdMenuOpen } from "react-icons/md";
@@ -16,17 +16,26 @@ import Logout from "@mui/icons-material/Logout";
 import { Divider } from "@mui/material";
 import { MyContext } from "../../App";
 
-import { AuthContext } from '../../context/AuthProvider';
+import { AuthContext } from "../../context/AuthProvider";
+
 
 
 const Header = () => {
-
   const { logout } = useContext(AuthContext);
 
   const { user } = useContext(AuthContext); // Lấy thông tin người dùng từ contex
-  
+
   const userName = user?.name || "Tên không xác định";
   const roleName = user?.roleName || "Chức vụ không xác định";
+
+  const [userImage, setUserImage] = useState('');
+
+  useEffect(() => {
+    if (user && user.image) {
+      setUserImage(user?.image); // Giả sử user.image chứa link ảnh
+    }
+  }, [user]);
+
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [isOpenNotificationsDrop, setisOpenNotificationsDrop] = useState(false);
@@ -34,10 +43,10 @@ const Header = () => {
   const openNotifications = Boolean(isOpenNotificationsDrop);
 
   const navigate = useNavigate(); // Khai báo hook navigate
-  
+
   const handleLogout = () => {
     logout(); // Gọi hàm logout
-    navigate('/admin/login'); // Điều hướng về trang login
+    navigate("/admin/login"); // Điều hướng về trang login
   };
 
   const context = useContext(MyContext);
@@ -58,7 +67,7 @@ const Header = () => {
     setisOpenNotificationsDrop(false);
   };
 
-  
+
 
   return (
     <>
@@ -68,28 +77,34 @@ const Header = () => {
             {/*Logo wraooer */}
             <div className="col-sm-2 part1">
               <Link to={"/admin"} className="d-flex align-items-center logo">
-                <img src={logo} alt=""/>
+                <img src={logo} alt="" />
                 <span className="ml-2">HOTASH</span>
               </Link>
             </div>
 
-            {
-              context.windowWidth>992 &&
-
+            {context.windowWidth > 992 && (
               <div className="col-sm-3 d-flex align-items-center part2 res-hide">
-              <Button className="rounded-circle mr-3" onClick={()=>context.setIsToggleSidebar(!context.isToggleSidebar)}>
-                    {
-                      context.isToggleSidebar===false ? <MdMenuOpen /> : <MdOutlineMenu />
-                    }
-              </Button>
-              <SearchBox />
-            </div>
-            
-            }
-            
+                <Button
+                  className="rounded-circle mr-3"
+                  onClick={() =>
+                    context.setIsToggleSidebar(!context.isToggleSidebar)
+                  }
+                >
+                  {context.isToggleSidebar === false ? (
+                    <MdMenuOpen />
+                  ) : (
+                    <MdOutlineMenu />
+                  )}
+                </Button>
+                <SearchBox />
+              </div>
+            )}
 
             <div className="col-sm-7 d-flex align-items-center justify-content-end part3">
-              <Button className="rounded-circle mr-3" onClick={()=>context.setThemeMode(!context.themeMode)}>
+              <Button
+                className="rounded-circle mr-3"
+                onClick={() => context.setThemeMode(!context.themeMode)}
+              >
                 <CiLight />
               </Button>
 
@@ -103,7 +118,7 @@ const Header = () => {
 
                 <Button
                   className="rounded-circle mr-3 rounded-circle-nav"
-                  onClick={() => context.openNav() }
+                  onClick={() => context.openNav()}
                 >
                   <IoMenu />
                 </Button>
@@ -125,12 +140,14 @@ const Header = () => {
 
                   <div className="scroll">
                     <MenuItem onClick={handleCloseNotificationsDrop}>
-                      
                       <div className="d-flex">
                         <div>
                           <div className="userImg">
                             <span className="rounded-circle">
-                              <img src="https://techvccloud.mediacdn.vn/280518386289090560/2024/9/17/reactjs-1726545361892465400796-6-0-465-817-crop-17265453645351178455990.jpg" alt="" />
+                              <img
+                                src="https://techvccloud.mediacdn.vn/280518386289090560/2024/9/17/reactjs-1726545361892465400796-6-0-465-817-crop-17265453645351178455990.jpg"
+                                alt=""
+                              />
                             </span>
                           </div>
                         </div>
@@ -145,101 +162,101 @@ const Header = () => {
                           </h4>
                           <p className="text-sky mb-0">few seconds ago</p>
                         </div>
-
                       </div>
                     </MenuItem>
                   </div>
 
-                <div className="pl-3 pr-3 w-100 pt-2 pb-1">
-                 <Button className="btn-blue w-100">View all Notifications</Button>
-                </div>
-
+                  <div className="pl-3 pr-3 w-100 pt-2 pb-1">
+                    <Button className="btn-blue w-100">
+                      View all Notifications
+                    </Button>
+                  </div>
                 </Menu>
               </div>
 
-              {
+              {context.isLogin !== true ? (
+                <Link to={"/login"}>
+                  <Button className="btn-blue btn-lg btn-round">
+                    Đăng nhập
+                  </Button>
+                </Link>
+              ) : (
+                <div className="myAccWrapper">
+                  <Button
+                    className="myAcc d-flex align-items-center"
+                    onClick={handleOpenMyAccDrop}
+                  >
+                    <div className="userImg">
+                      <span className="rounded-circle">
 
-                 context.isLogin !== true ? <Link to={'/login'}><Button className="btn-blue btn-lg btn-round">Đăng nhập</Button></Link>
-                 :
-                 <div className="myAccWrapper">
-                <Button
-                  className="myAcc d-flex align-items-center"
-                  onClick={handleOpenMyAccDrop}
-                >
-                  <div className="userImg">
-                    <span className="rounded-circle">
-                      <img src="https://techvccloud.mediacdn.vn/280518386289090560/2024/9/17/reactjs-1726545361892465400796-6-0-465-817-crop-17265453645351178455990.jpg" alt="" />
-                    </span>
-                  </div>
+                      <img src={userImage} alt="User Avatar" /> {/* Hiển thị ảnh người dùng */}
+                     
+                      </span>
+                    </div>
 
-                  <div className="userInfo res-hide">
-                   
-                    <h4>{userName}</h4>
-                    <p className="mb-0">{ roleName }</p>
-                
-                  </div>
-
-                </Button>
-                <Menu
-                  anchorEl={anchorEl}
-                  id="account-menu"
-                  open={openMyAcc}
-                  onClose={handleCloseMyAccDrop}
-                  onClick={handleCloseMyAccDrop}
-                  slotProps={{
-                    paper: {
-                      elevation: 0,
-                      sx: {
-                        overflow: "visible",
-                        filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                        mt: 1.5,
-                        "& .MuiAvatar-root": {
-                          width: 32,
-                          height: 32,
-                          ml: -0.5,
-                          mr: 1,
-                        },
-                        "&::before": {
-                          content: '""',
-                          display: "block",
-                          position: "absolute",
-                          top: 0,
-                          right: 14,
-                          width: 10,
-                          height: 10,
-                          bgcolor: "background.paper",
-                          transform: "translateY(-50%) rotate(45deg)",
-                          zIndex: 0,
+                    <div className="userInfo res-hide">
+                      <h4>{userName}</h4>
+                      <p className="mb-0">{roleName}</p>
+                    </div>
+                  </Button>
+                  <Menu
+                    anchorEl={anchorEl}
+                    id="account-menu"
+                    open={openMyAcc}
+                    onClose={handleCloseMyAccDrop}
+                    onClick={handleCloseMyAccDrop}
+                    slotProps={{
+                      paper: {
+                        elevation: 0,
+                        sx: {
+                          overflow: "visible",
+                          filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                          mt: 1.5,
+                          "& .MuiAvatar-root": {
+                            width: 32,
+                            height: 32,
+                            ml: -0.5,
+                            mr: 1,
+                          },
+                          "&::before": {
+                            content: '""',
+                            display: "block",
+                            position: "absolute",
+                            top: 0,
+                            right: 14,
+                            width: 10,
+                            height: 10,
+                            bgcolor: "background.paper",
+                            transform: "translateY(-50%) rotate(45deg)",
+                            zIndex: 0,
+                          },
                         },
                       },
-                    },
-                  }}
-                  transformOrigin={{ horizontal: "right", vertical: "top" }}
-                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-                >
-                  <MenuItem onClick={handleCloseMyAccDrop}>
-                    <ListItemIcon>
-                      <PersonAdd fontSize="small" />
-                    </ListItemIcon>
-                    Tài khoản của tôi
-                  </MenuItem>
-                  <MenuItem onClick={handleCloseMyAccDrop}>
-                    <ListItemIcon>
-                      <IoShieldHalfSharp fontSize="small" />
-                    </ListItemIcon>
-                    Đặt lại mật khẩu
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>
-                    <ListItemIcon>
-                      <Logout fontSize="small" />
-                    </ListItemIcon>
-                    Đăng xuất
-                  </MenuItem>
-                </Menu>
+                    }}
+                    transformOrigin={{ horizontal: "right", vertical: "top" }}
+                    anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                  >
+                    <MenuItem onClick={handleCloseMyAccDrop}>
+                      <ListItemIcon>
+                        <PersonAdd fontSize="small" />
+                      </ListItemIcon>
+                      Tài khoản của tôi
+                    </MenuItem>
+                    <MenuItem onClick={handleCloseMyAccDrop}>
+                      <ListItemIcon>
+                        <IoShieldHalfSharp fontSize="small" />
+                      </ListItemIcon>
+                      Đặt lại mật khẩu
+                    </MenuItem>
+                    <MenuItem onClick={handleLogout}>
+                      <ListItemIcon>
+                        <Logout fontSize="small" />
+                      </ListItemIcon>
+                      Đăng xuất
+                    </MenuItem>
+                  </Menu>
                 </div>
-
-              }
-         
+              )}
             </div>
           </div>
         </div>

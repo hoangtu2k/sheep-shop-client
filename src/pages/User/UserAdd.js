@@ -10,12 +10,12 @@ import { MenuItem, Select } from "@mui/material";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { FaCloudUploadAlt, FaRegImages } from "react-icons/fa";
 import { IoCloseSharp } from "react-icons/io5";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import axios from "../../utils/axiosConfig";
+
 import { storage } from "../../firebase";
-import { ref, uploadBytes } from "firebase/storage";
-import { v4 } from "uuid";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const StyledBreadcrumb = styled(Chip)(({ theme }) => {
   const backgroundColor =
@@ -40,7 +40,6 @@ const StyledBreadcrumb = styled(Chip)(({ theme }) => {
 const UserAdd = () => {
   const navigate = useNavigate();
 
-  const { id } = useParams();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -50,7 +49,24 @@ const UserAdd = () => {
   const [account, setAccount] = useState("");
   const [accountsList, setAccountsList] = useState([]);
 
-  const [imageUpload, setImageUpload] = useState(null);
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      const imageUrl = URL.createObjectURL(file); // Tạo URL từ file
+      setImagePreview(imageUrl); // Cập nhật URL vào trạng thái
+    }
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview(""); // Xóa ảnh đã chọn
+  };
 
   const handleChangeGender = (e) => {
     setGender(e.target.value);
@@ -63,7 +79,29 @@ const UserAdd = () => {
   const handleSubmitUserAdd = async (e) => {
     e.preventDefault();
 
+    if (isSubmitting) return; // Ngăn chặn gửi nếu đang trong quá trình gửi
+
+    setIsSubmitting(true); // Đánh dấu là đang gửi
+
     try {
+      let imageUrl = "";
+
+      // Nếu có ảnh được chọn, kiểm tra trước khi tải lên
+      if (image) {
+        const storageRef = ref(storage, `images/sheepshop/${image.name}`);
+        try {
+            // Kiểm tra xem ảnh đã tồn tại bằng cách lấy URL
+            imageUrl = await getDownloadURL(storageRef);
+            console.log("Ảnh đã tồn tại:", imageUrl);
+        } catch (error) {
+            // Nếu không tìm thấy ảnh, tải ảnh lên
+            await uploadBytes(storageRef, image);
+            imageUrl = await getDownloadURL(storageRef);
+            console.log("Ảnh đã được tải lên:", imageUrl);
+        }
+      }
+
+      // Gửi thông tin người dùng cùng với URL ảnh (nếu có) đến server
       await axios.post(`/admin/users`, {
         code: code,
         name: name,
@@ -72,7 +110,9 @@ const UserAdd = () => {
         dateOfBirth: dateOfBirth,
         gender: gender,
         accountId: account,
+        image: imageUrl, // Thêm URL ảnh vào payload
       });
+
       navigate("/admin/users"); // Điều hướng đến trang chính
     } catch (error) {
       if (error.response) {
@@ -85,6 +125,8 @@ const UserAdd = () => {
         // Có lỗi xảy ra khi thiết lập yêu cầu
         console.error("Lỗi:", error.message);
       }
+    } finally {
+      setIsSubmitting(false); // Đặt lại trạng thái khi hoàn thành
     }
   };
 
@@ -239,36 +281,44 @@ const UserAdd = () => {
           <div className="card p-4 mt-0">
             <div className="imagesUploadSec">
               <h5 className="mb-4">Media And Published</h5>
+           
               <div className="imgUploadBox d-flex align-items-center">
-                <div className="uploadBox">
-                  <span className="remove">
-                    <IoCloseSharp />{" "}
-                  </span>
-                  <div className="box">
-                    <LazyLoadImage
-                      alt={"image"}
-                      effect="blur"
-                      className="w-100"
-                      src={"https://acc957.com/Img/DichVu.png"}
-                    />
-                  </div>
-                </div>
-
-                <div className="uploadBox">
-                  <input type="file" multiple="" name="images" />
-                  <div className="info">
-                    <FaRegImages />
-                    <h5>image upload</h5>
-                  </div>
-                </div>
+                      {imagePreview ? (
+                        <div className="uploadBox">
+                          <span className="remove" onClick={removeImage}>
+                            <IoCloseSharp />
+                          </span>
+                          <div className="box">
+                            <LazyLoadImage
+                              alt={"image"}
+                              effect="blur"
+                              className="w-100"
+                              src={imagePreview} // Sử dụng URL đã tạo
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="uploadBox">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                          />
+                          <div className="info">
+                            <FaRegImages />
+                            <h5>Image Upload</h5>
+                          </div>
+                        </div>
+                      )}
               </div>
+           
             </div>
 
             <br />
 
-            <Button className="btn-blue btn-lg btn-big" type="submit">
+            <Button className="btn-blue btn-lg btn-big" type="submit" disabled={isSubmitting}>
               <FaCloudUploadAlt />
-              &nbsp; Lưu
+              &nbsp; {isSubmitting ? "Đang gửi..." : "Thêm người dùng"}
             </Button>
           </div>
         </form>

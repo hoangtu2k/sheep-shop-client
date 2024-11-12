@@ -77,7 +77,6 @@ const Login = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
         // Lưu thông tin người dùng vào context
         login(token, userResponse.data); // Pass both token and user data
         navigate('/admin'); // Điều hướng đến trang chính
