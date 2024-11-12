@@ -3,9 +3,9 @@ import React, { useContext, useState } from "react";
 import Button from "@mui/material/Button";
 
 import { FaAngleRight, FaBell, FaCartArrowDown } from "react-icons/fa6";
-import { FaProductHunt } from "react-icons/fa";
+import { FaProductHunt, FaShoppingCart, FaUserTie } from "react-icons/fa";
 import { MdDashboard, MdMessage } from "react-icons/md";
-import { IoIosSettings } from "react-icons/io";
+import { IoIosSettings, IoMdSwap } from "react-icons/io";
 import { IoMdLogOut } from "react-icons/io";
 import { MyContext } from '../../App';
 import { HiUsers } from "react-icons/hi";
@@ -66,8 +66,8 @@ const Sidebar = () => {
                     <li>
                         <Link to="/">
                             <Button className={`w-100 ${activeTab === 2 ? 'active': ''}`}>
-                                <span className="icon"><FaCartArrowDown /></span>
-                                Đặt hàng
+                                <span className="icon"><IoMdSwap /></span>
+                                Giao dịch
                                 <span className="arrow"><FaAngleRight /></span>
                             </Button>
                         </Link>
@@ -87,9 +87,32 @@ const Sidebar = () => {
                                 </ul>
                             </div>
                     </li>
+                    <li>                      
+                            <Button className={`w-100 ${activeTab === 4 && isToggleSubmenu ===true ? 'active': ''}`} onClick={()=>isOpenSubmenu(4)}>
+                                <span className="icon"><FaUserTie /></span>
+                                Đối tác
+                                <span className="arrow"><FaAngleRight /></span>
+                            </Button>
+                            
+                            <div className={`submenuWrapper ${activeTab === 4 && isToggleSubmenu ===true ? 'colapse': 'colapsed'} `}>
+                                <ul className="submenu">
+                                    <li><Link to="/admin/customers">Khách hàng</Link></li>
+                                    <li><Link to="/admin">Nhà cung cáp</Link></li>
+                                </ul>
+                            </div>
+                    </li>
                     <li>
                         <Link to="/">
-                            <Button className={`w-100 ${activeTab === 4 ? 'active': ''}`}>
+                            <Button className={`w-100 ${activeTab === 9 ? 'active': ''}`}>
+                                <span className="icon"><FaShoppingCart /></span>
+                                Bán online
+                                <span className="arrow"><FaAngleRight /></span>
+                            </Button>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/">
+                            <Button className={`w-100 ${activeTab === 9 ? 'active': ''}`}>
                                 <span className="icon"><MdMessage /></span>
                                 Tin nhắn
                                 <span className="arrow"><FaAngleRight /></span>
@@ -98,7 +121,7 @@ const Sidebar = () => {
                     </li>
                     <li>
                         <Link to="/">
-                            <Button className={`w-100 ${activeTab === 5 ? 'active': ''}`}>
+                            <Button className={`w-100 ${activeTab === 8 ? 'active': ''}`}>
                                 <span className="icon"><FaBell /></span>
                                 Thông báo
                                 <span className="arrow"><FaAngleRight /></span>
@@ -107,7 +130,7 @@ const Sidebar = () => {
                     </li>
                     <li>
                         <Link to="/">
-                            <Button className={`w-100 ${activeTab === 6 ? 'active': ''}`}>
+                            <Button className={`w-100 ${activeTab === 7 ? 'active': ''}`}>
                                 <span className="icon"><IoIosSettings /></span>
                                 Cài đặt
                                 <span className="arrow"><FaAngleRight /></span>

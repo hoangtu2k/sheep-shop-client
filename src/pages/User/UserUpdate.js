@@ -10,9 +10,9 @@ import { MenuItem, Select } from "@mui/material";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { FaCloudUploadAlt, FaRegImages } from "react-icons/fa";
 import { IoCloseSharp } from "react-icons/io5";
-import { useNavigate, useParams  } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-import axios from '../../utils/axiosConfig';
+import axios from "../../utils/axiosConfig";
 
 const StyledBreadcrumb = styled(Chip)(({ theme }) => {
   const backgroundColor =
@@ -35,85 +35,87 @@ const StyledBreadcrumb = styled(Chip)(({ theme }) => {
 });
 
 const UserUpdate = () => {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
-   
-    const { id } = useParams();
-    const [code, setCode] = useState('');
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
-    const [dateOfBirth, setDateOfBirth] = useState('');
-    const [gender, setGender] = useState("");
-    const [account, setAccount] = useState('');
-    const [accountsList, setAccountsList] = useState([]);
+  const { id } = useParams();
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState("");
+  const [account, setAccount] = useState("");
+  const [accountsList, setAccountsList] = useState([]);
 
-
-    useEffect(() => {
-      const fetchAccounts = async () => {
-          try {
-              const response = await axios.get('/admin/account'); // Replace with your API endpoint
-              setAccountsList(response.data);
-          } catch (error) {
-              console.error('Error fetching accounts:', error);
-          }
-      };
-
-      fetchAccounts();
-     }, []);
-
-    useEffect(() => {
-
-        const fetchUser = async () => {
-            const response = await axios.get(`/admin/users/${id}`);
-            setCode(response.data.code);
-            setName(response.data.name);
-            setEmail(response.data.email);
-            setPhone(response.data.phone);
-            // Chuyển đổi timestamp thành định dạng yyyy-MM-dd
-            if (response.data.dateOfBirth) {
-                setDateOfBirth(formatDate(response.data.dateOfBirth));
-            }
-            if (response.data.gender !== undefined) { // Kiểm tra nếu có trường giới tính
-                setGender(response.data.gender); // Gán giá trị giới tính từ API
-            }
-
-        };
-        fetchUser();
-        
-    }, [id]);
-
-    const formatDate = (timestamp) => {
-        const date = new Date(timestamp);
-        return date.toISOString().split('T')[0];
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const response = await axios.get("/admin/account"); // Replace with your API endpoint
+        setAccountsList(response.data);
+      } catch (error) {
+        console.error("Error fetching accounts:", error);
+      }
     };
 
-    const handleChangeGender = (e) => {
-        setGender(e.target.value);
-    };
+    fetchAccounts();
+  }, []);
 
-    const handleChangeAccount = (e) => {
-      setAccount(e.target.value);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await axios.get(`/admin/users/${id}`);
+      setCode(response.data.code);
+      setName(response.data.name);
+      setEmail(response.data.email);
+      setPhone(response.data.phone);
+
+      // Chuyển đổi timestamp thành định dạng yyyy-MM-dd
+      if (response.data.dateOfBirth) {
+        setDateOfBirth(formatDate(response.data.dateOfBirth));
+      }
+      if (response.data.gender !== undefined) {
+        // Kiểm tra nếu có trường giới tính
+        setGender(response.data.gender); // Gán giá trị giới tính từ API
+      }
+
+      if (response.data.account && response.data.account.id !== null) {
+        setAccount(response.data.account.id);
+      } else {
+        setAccount("");
+      }
+    };
+    fetchUser();
+  }, [id]);
+
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toISOString().split("T")[0];
   };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.put(`/admin/users/${id}`, { 
-                code: code, 
-                name: name, 
-                email: email, 
-                phone: phone, 
-                dateOfBirth: dateOfBirth, 
-                gender: gender,
-                accountId: account
-            });
-            navigate('/admin/users'); // Điều hướng đến trang chính
-        } catch (error) {
-            console.error('Lỗi cập nhật người dùng:', error);
-        }
-    };
+  const handleChangeGender = (e) => {
+    setGender(e.target.value);
+  };
 
+  const handleChangeAccount = (e) => {
+    setAccount(e.target.value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`/admin/users/${id}`, {
+        code: code,
+        name: name,
+        email: email,
+        phone: phone,
+        dateOfBirth: dateOfBirth,
+        gender: gender,
+        accountId: account,
+      });
+      navigate("/admin/users"); // Điều hướng đến trang chính
+    } catch (error) {
+      console.error("Lỗi cập nhật người dùng:", error);
+    }
+  };
 
   return (
     <>
@@ -122,15 +124,15 @@ const UserUpdate = () => {
           <h5 className="mb-0">Cập nhật nhân viên</h5>
           <Breadcrumb aria-label="breadcrumb" className="ml-auto breadcrumbs_">
             <StyledBreadcrumb
-              component="a"
-              href="/"
+              component={Link}
+              to="/admin"
               label="Tổng quan"
               icon={<HomeIcon fontSize="small" />}
             />
 
             <StyledBreadcrumb
-              component="a"
-              href="/users"
+              component={Link}
+              to="/admin/users"
               label="Danh sách nhân viên"
               deleteIcon={<ExpandMore />}
             />
@@ -141,113 +143,111 @@ const UserUpdate = () => {
             />
           </Breadcrumb>
         </div>
-        
 
         <form className="form" onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-md-12">
               <div className="card p-4 mt-0">
                 <h5 className="mb-4">Thông tin cơ bản</h5>
-                                          
+
                 <input hidden type="text" />
 
                 <div className="row">
-                <div className="col">
-                <div className="form-group">
+                  <div className="col">
+                    <div className="form-group">
                       <h6>Mã nhân viên</h6>
-                      <input 
-                        type="text" 
-                        value={code} 
-                        onChange={(e) => setCode(e.target.value)}                        
-                        />
+                      <input
+                        type="text"
+                        value={code}
+                        onChange={(e) => setCode(e.target.value)}
+                      />
                     </div>
                   </div>
                   <div className="col">
                     <div className="form-group">
-                      <h6>Tên nhân viên</h6>                  
-                        <input 
-                        type="text" 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)}                        
-                        />
-
+                      <h6>Tên nhân viên</h6>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
                     </div>
                   </div>
-                  
                 </div>
 
                 <div className="row">
                   <div className="col">
                     <div className="form-group">
                       <h6>Email</h6>
-                      <input 
-                        type="text" 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)}                        
-                        />
+                      <input
+                        type="text"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
                   </div>
                   <div className="col">
                     <div className="form-group">
                       <h6>Số điện thoại</h6>
-                      <input 
-                        type="phone" 
-                        value={phone} 
-                        onChange={(e) => setPhone(e.target.value)}                        
-                        />
+                      <input
+                        type="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>
 
                 <div className="row">
-                        <div className="col">
-                            <h6>Giới tính</h6>
-                            <Select
-                    value={gender}
-                    onChange={handleChangeGender}
-                    displayEmpty
-                    inputProps={{ "aria-label": "Without label" }}
-                    className="w-100"
-                >
-                    <MenuItem value="">
+                  <div className="col">
+                    <h6>Giới tính</h6>
+                    <Select
+                      value={gender}
+                      onChange={handleChangeGender}
+                      displayEmpty
+                      inputProps={{ "aria-label": "Without label" }}
+                      className="w-100"
+                    >
+                      <MenuItem value="">
                         <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={1}>Nam</MenuItem>
-                    <MenuItem value={0}>Nữ</MenuItem>
-                </Select>
+                      </MenuItem>
+                      <MenuItem value={1}>Nam</MenuItem>
+                      <MenuItem value={0}>Nữ</MenuItem>
+                    </Select>
+                  </div>
+                  <div className="col">
+                    <div className="form-group">
+                      <h6>Ngày sinh</h6>
+                      <input
+                        type="date"
+                        value={dateOfBirth}
+                        onChange={(e) => setDateOfBirth(e.target.value)}
+                      />
                     </div>
-                    <div className="col">
-                        <div className="form-group">
-                        <h6>Ngày sinh</h6>
-                        <input 
-                            type="date" 
-                            value={dateOfBirth} 
-                            onChange={(e) => setDateOfBirth(e.target.value)}                     
-                        />
-                        </div>
-                    </div>
+                  </div>
                 </div>
 
                 <div className="row">
-                        <div className="col">
-                            <h6>Tài khoản đăng nhập</h6>
-                            <Select
-                                value={account}
-                                onChange={handleChangeAccount}
-                                displayEmpty
-                                inputProps={{ 'aria-label': 'Without label' }}
-                                className="w-100"
-                            >   
-                                   <MenuItem value=""><em>None</em></MenuItem>                
-                            {accountsList.map((acc) => (
-                                <MenuItem key={acc.id} value={acc.id}>
-                                    {acc.username}
-                                </MenuItem>
-                            ))}
-                            </Select>
-                    </div>                  
+                  <div className="col">
+                    <h6>Tài khoản đăng nhập</h6>
+                    <Select
+                      value={account}
+                      onChange={handleChangeAccount}
+                      displayEmpty
+                      inputProps={{ "aria-label": "Without label" }}
+                      className="w-100"
+                    >
+                      <MenuItem value="">
+                        <em>None</em>
+                      </MenuItem>
+                      {accountsList.map((acc) => (
+                        <MenuItem key={acc.id} value={acc.id}>
+                          {acc.username}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </div>
                 </div>
-             
               </div>
             </div>
           </div>

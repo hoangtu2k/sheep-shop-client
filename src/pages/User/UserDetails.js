@@ -5,7 +5,7 @@ import Breadcrumb  from "@mui/material/Breadcrumbs";
 import { emphasize, styled } from "@mui/material/styles";
 import Chip from '@mui/material/Chip';
 import HomeIcon from '@mui/icons-material/Home';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 import axios from '../../utils/axiosConfig';
 
@@ -69,16 +69,18 @@ const UserDetails = () => {
                         <h5 className="mb-0">Chi tiết nhân viên</h5>
                         <Breadcrumb aria-label="breadcrumb" className="ml-auto breadcrumbs_">
 
-                            <StyledBreadcrumb component = "a"
-                                href="/admin"
+                            <StyledBreadcrumb 
+                                component={Link}
+                                to="/admin"
                                 label="Tổng quan"
                                 icon={<HomeIcon fontSize ="small" />}
                              />
 
-                            <StyledBreadcrumb component="a"
-                            href="/admin/users"
-                            label="Danh sách nhân viên"
-                            deleteIcon={<ExpandMore />}
+                            <StyledBreadcrumb 
+                                component={Link}
+                                to="/admin/users"
+                                label="Danh sách nhân viên"
+                                deleteIcon={<ExpandMore />}
                             />
 
                             <StyledBreadcrumb

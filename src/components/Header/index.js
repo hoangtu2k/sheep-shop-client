@@ -37,7 +37,7 @@ const Header = () => {
   
   const handleLogout = () => {
     logout(); // Gọi hàm logout
-    navigate('/login'); // Điều hướng về trang login
+    navigate('/admin/login'); // Điều hướng về trang login
   };
 
   const context = useContext(MyContext);
