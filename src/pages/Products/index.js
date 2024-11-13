@@ -11,15 +11,12 @@ import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Pagination from "@mui/material/Pagination";
-
 import axios from "../../utils/axiosConfig";
 import { toast } from "react-toastify";
-
 import { MyContext } from "../../App";
 import "../../assets/css/product.css";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { IoCloseSharp } from "react-icons/io5";
-
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
@@ -51,11 +48,13 @@ const style = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 1000,
+  width: "90%", // Responsive width
+  maxWidth: 1000, // Maximum width
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
-  p: 2,
+  p: 3, // Increased padding for better spacing
+  borderRadius: "8px", // Rounded corners
 };
 
 const Products = () => {
@@ -64,12 +63,10 @@ const Products = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [weight, setWeight] = useState("");
-
   const [brand, setBrand] = useState("");
   const [brandList, setBrandsList] = useState([]);
   const [category, setCategory] = useState("");
   const [categoryList, setcategoriesList] = useState([]);
-
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState({
     main: [],
@@ -120,17 +117,6 @@ const Products = () => {
     setCurrentPage(value);
   };
 
-  const fetchProducts = async () => {
-    try {
-      const response = await axios.get("/admin/products"); // Adjust the URL as needed
-      setProducts(response.data);
-    } catch (error) {
-      toast.error(
-        "Error fetching users: " + (error.response?.data || error.message)
-      );
-    }
-  };
-
   // Hàm định dạng giá
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN").format(price); // Thêm "+ VND " vào cuối
@@ -142,11 +128,14 @@ const Products = () => {
 
     console.log("Main Image:", { file, url: previewUrl });
 
-    setImages([{ file, main: true, featured: false }]);
+    setImages([{ file, main: true, featured: false, secondary: false }]);
     setImagePreviews({
-      main: [{ url: previewUrl, main: true, featured: false }],
+      main: [
+        { url: previewUrl, main: true, featured: false, secondary: false },
+      ],
       additional: [],
       featured: [],
+      secondary: [],
     });
   };
 
@@ -174,7 +163,11 @@ const Products = () => {
 
   const handleFeaturedImagesChange = (event) => {
     const files = Array.from(event.target.files);
-    const newImages = files.map((file) => ({ file, main: false, featured: true }));
+    const newImages = files.map((file) => ({
+      file,
+      main: false,
+      featured: true,
+    }));
     const newImagePreviews = files.map((file) => ({
       url: URL.createObjectURL(file),
       main: false,
@@ -187,6 +180,28 @@ const Products = () => {
     setImagePreviews((prev) => ({
       ...prev,
       featured: [...prev.featured, ...newImagePreviews],
+    }));
+  };
+
+  const handleSecondaryImagesChange = (event) => {
+    const files = Array.from(event.target.files);
+    const newImages = files.map((file) => ({
+      file,
+      main: false,
+      secondary: true,
+    }));
+    const newImagePreviews = files.map((file) => ({
+      url: URL.createObjectURL(file),
+      main: false,
+      secondary: true,
+    }));
+
+    console.log("Secondary Images:", newImages, newImagePreviews);
+
+    setImages((prev) => [...prev, ...newImages]);
+    setImagePreviews((prev) => ({
+      ...prev,
+      secondary: [...prev.secondary, ...newImagePreviews],
     }));
   };
 
@@ -257,6 +272,7 @@ const Products = () => {
 
       fetchProducts();
       handleClose();
+      resetFormFields();
     } catch (error) {
       if (error.response) {
         console.error("Server error:", error.response.data);
@@ -277,6 +293,35 @@ const Products = () => {
     }
   };
 
+  const resetFormFields = () => {
+    setCode("");
+    setBarcode("");
+    setName("");
+    setPrice("");
+    setWeight("");
+    setBrand("");
+    setCategory("");
+    setImages([]);
+    setImagePreviews({
+      main: [],
+      additional: [],
+      featured: [],
+      secondary: [],
+      banner: [],
+    });
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("/admin/products"); // Adjust the URL as needed
+      setProducts(response.data);
+    } catch (error) {
+      toast.error(
+        "Error fetching users: " + (error.response?.data || error.message)
+      );
+    }
+  };
+
   useEffect(() => {
     const fetchBrandsAndCategories = async () => {
       try {
@@ -290,9 +335,6 @@ const Products = () => {
     };
 
     fetchBrandsAndCategories();
-  }, []);
-
-  useEffect(() => {
     fetchProducts();
 
     context.setisHideSidebarAndHeader(false);
@@ -301,7 +343,10 @@ const Products = () => {
 
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    resetFormFields(); // Reset form fields when closing
+    setOpen(false);
+  };
 
   return (
     <>
@@ -704,6 +749,43 @@ const Products = () => {
                               </div>
                             </div>
                           )}
+
+                          {/* Featured Images Upload */}
+                          {imagePreviews.secondary.length ? (
+                            imagePreviews.secondary.map((preview, index) => (
+                              <div key={index} className="uploadBox">
+                                <span
+                                  className="remove"
+                                  onClick={() =>
+                                    removeImage("secondary", index)
+                                  }
+                                >
+                                  <IoCloseSharp />
+                                </span>
+                                <div className="box">
+                                  <LazyLoadImage
+                                    alt="Secondary image"
+                                    effect="blur"
+                                    className="w-100"
+                                    src={preview.url}
+                                  />
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="uploadBox">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleSecondaryImagesChange}
+                              />
+                              <div className="info">
+                                <FaRegImages />
+                                <h5>Secondary Images Upload</h5>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -714,8 +796,12 @@ const Products = () => {
               <div className="card p-4 mt-0">
                 <div className="row">
                   <div className="col">
-                    <Button className="btn-blue btn-lg btn-big" type="submit">
-                      Lưu và thêm mới
+                    <Button
+                      className="btn-blue btn-lg btn-big"
+                      type="submit"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Đang lưu..." : "Thêm sản phẩm mới"}
                     </Button>
                   </div>
                   <div className="col">
