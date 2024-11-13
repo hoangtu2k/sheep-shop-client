@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
-import "./responsive.css";
+import "./assets/css/responsive.css";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import { createContext, useEffect, useState } from "react";
