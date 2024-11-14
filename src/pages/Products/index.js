@@ -61,7 +61,6 @@ const style = {
 };
 
 const Products = () => {
-
   const [id, setId] = useState(null);
   const [code, setCode] = useState("");
   const [barcode, setBarcode] = useState("");
@@ -80,8 +79,6 @@ const Products = () => {
     secondary: [],
     banner: [],
   });
-
-  
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -213,10 +210,27 @@ const Products = () => {
   };
 
   const removeImage = (type, index) => {
-    setImagePreviews((prev) => ({
-      ...prev,
-      [type]: prev[type].filter((_, i) => i !== index),
-    }));
+    if (type === "main") {
+      setImagePreviews((prev) => ({
+        ...prev,
+        main: prev.main.filter((_, i) => i !== index),
+      }));
+    } else if (type === "additional") {
+      setImagePreviews((prev) => ({
+        ...prev,
+        additional: prev.additional.filter((_, i) => i !== index),
+      }));
+    } else if (type === "featured") {
+      setImagePreviews((prev) => ({
+        ...prev,
+        featured: prev.featured.filter((_, i) => i !== index),
+      }));
+    } else if (type === "secondary") {
+      setImagePreviews((prev) => ({
+        ...prev,
+        secondary: prev.secondary.filter((_, i) => i !== index),
+      }));
+    }
   };
 
   const handleSubmitProductAdd = async (e) => {
@@ -300,42 +314,7 @@ const Products = () => {
     }
   };
 
-  const handleSubmitProductUpdate = async (e) => {
-    e.preventDefault();
   
-    // Tạo đối tượng sản phẩm để cập nhật
-    const updatedProduct = {
-      id: id,
-      code,
-      barcode,
-      name,
-      price,
-      weight,
-      categoryId: category,
-      brandId: brand,
-    };
-  
-    try {
-      // Gọi API để cập nhật sản phẩm
-      const response = await axios.put(`/admin/products/${id}`, updatedProduct, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      // Nếu cập nhật thành công, có thể lấy dữ liệu mới hoặc chỉ cần thông báo thành công
-      console.log('Cập nhật thành công:', response.data);
-  
-      // Đóng modal và reset các state
-      fetchProducts(); // Gọi lại hàm để cập nhật danh sách sản phẩm
-      handleCloseModelAddAndUpdateProduct();
-      resetFormFields();
-    } catch (error) {
-      console.error('Có lỗi xảy ra:', error);
-      // Có thể thông báo lỗi cho người dùng
-      // nếu muốn hiển thị thông báo cho người dùng, có thể sử dụng một thư viện thông báo
-    }
-  };
 
   const resetFormFields = () => {
     setCode("");
@@ -396,14 +375,59 @@ const Products = () => {
   };
 
   const handleOpenModelUpdateProduct = (product) => {
-    setId(product.id); // Lưu ID sản phẩm
+    setId(product.id);
     setCode(product.code);
     setBarcode(product.barcode);
     setName(product.name);
     setPrice(product.price);
     setWeight(product.weight);
-    setCategory(product.categoryId); // Thay thế với id thực tế
-    setBrand(product.brandId); // Thay thế với id thực tế
+    setCategory(product.categoryId);
+    setBrand(product.brandId);
+
+    // Lấy ảnh chính
+    const mainImage = product.imageUrl
+      ? [{ url: product.imageUrl, main: true }]
+      : [];
+
+    // Lấy danh sách tất cả các ảnh phụ
+    const listImageNotMain = Array.isArray(product.notMainImages)
+      ? product.notMainImages
+      : [];
+
+    // Phân loại các ảnh phụ
+    const additionalImages =
+      listImageNotMain.length > 0
+        ? [
+            {
+              file: { url: listImageNotMain[0] },
+              main: false,
+              additional: true,
+            },
+          ]
+        : [];
+    const featuredImages =
+      listImageNotMain.length > 1
+        ? [{ file: { url: listImageNotMain[1] }, main: false, featured: true }]
+        : [];
+    const secondaryImages =
+      listImageNotMain.length > 2
+        ? [{ file: { url: listImageNotMain[2] }, main: false, secondary: true }]
+        : [];
+
+    setImages([
+      ...mainImage,
+      ...additionalImages,
+      ...featuredImages,
+      ...secondaryImages,
+    ]);
+
+    setImagePreviews({
+      main: mainImage,
+      additional: additionalImages.map((item) => item.file),
+      featured: featuredImages.map((item) => item.file),
+      secondary: secondaryImages.map((item) => item.file),
+    });
+
     setOpenModelUpdateProduct(true);
   };
 
@@ -489,7 +513,7 @@ const Products = () => {
                   <th>Danh mục</th>
                   <th>Thương hiệu</th>
                   <th>Giá bán</th>
-                  <th>Cho phép kinh doanh</th>
+                  <th>Trạng thái</th>
                   <th>Hành động</th>
                 </tr>
               </thead>
@@ -503,9 +527,9 @@ const Products = () => {
                         <div className="imgWrapper">
                           <div className="img card shadow m-0">
                             <img
-                              src="https://acc957.com/Img/TaiKhoan.png"
+                              src={product.imageUrl}
                               className="w-100"
-                              alt=""
+                              alt={product.name}
                             />
                           </div>
                         </div>
@@ -567,6 +591,7 @@ const Products = () => {
         </div>
       </div>
 
+      {/* Thêm sản phẩm */}
       <Modal
         keepMounted
         open={openModelAddProduct}
@@ -898,6 +923,7 @@ const Products = () => {
         </Box>
       </Modal>
 
+      {/* Sửa sản phẩm */}
       <Modal
         keepMounted
         open={openModelUpdateProduct}
@@ -1072,7 +1098,7 @@ const Products = () => {
                                   />
                                   <div className="info">
                                     <FaRegImages />
-                                    <h5>Main Image Upload</h5>
+                                    <h5>Ảnh đại diện</h5>
                                   </div>
                                 </div>
                               )}
@@ -1112,7 +1138,7 @@ const Products = () => {
                                   />
                                   <div className="info">
                                     <FaRegImages />
-                                    <h5>Additional Images Upload</h5>
+                                    <h5>Ảnh phụ</h5>
                                   </div>
                                 </div>
                               )}
@@ -1150,7 +1176,7 @@ const Products = () => {
                                   />
                                   <div className="info">
                                     <FaRegImages />
-                                    <h5>Featured Images Upload</h5>
+                                    <h5>Ảnh phụ</h5>
                                   </div>
                                 </div>
                               )}
@@ -1190,7 +1216,7 @@ const Products = () => {
                                   />
                                   <div className="info">
                                     <FaRegImages />
-                                    <h5>Secondary Images Upload</h5>
+                                    <h5>Ảnh phụ</h5>
                                   </div>
                                 </div>
                               )}
