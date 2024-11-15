@@ -102,11 +102,10 @@ const Sidebar = () => {
                             </div>
                     </li>
                     <li>
-                        <Link to="/">
-                            <Button className={`w-100 ${activeTab === 9 ? 'active': ''}`}>
+                        <Link to="/sale">
+                            <Button className={`w-100 ${activeTab === 5 ? 'active': ''}`}>
                                 <span className="icon"><FaShoppingCart /></span>
                                 Bán online
-                                <span className="arrow"><FaAngleRight /></span>
                             </Button>
                         </Link>
                     </li>

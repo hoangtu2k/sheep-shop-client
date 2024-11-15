@@ -10,11 +10,6 @@ import { IoCloseSharp } from "react-icons/io5";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import { FaEye, FaPencilAlt, FaRegImages } from "react-icons/fa";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-import Breadcrumb from "@mui/material/Breadcrumbs";
-import { emphasize, styled } from "@mui/material/styles";
-import Chip from "@mui/material/Chip";
-import HomeIcon from "@mui/icons-material/Home";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
@@ -24,25 +19,6 @@ import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 
-const StyledBreadcrumb = styled(Chip)(({ theme }) => {
-  const backgroundColor =
-    theme.palette.mode === "light"
-      ? theme.palette.grey[100]
-      : theme.palette.grey[800];
-  return {
-    backgroundColor,
-    height: theme.spacing(3),
-    color: theme.palette.text.primary,
-    fontWeight: theme.typography.fontWeightRegular,
-    "&:hover, &focus": {
-      backgroundColor: emphasize(backgroundColor, 0.06),
-    },
-    "&:active": {
-      boxShadow: theme.shadows[1],
-      backgroundColor: emphasize(backgroundColor, 0.12),
-    },
-  };
-});
 
 const style = {
   position: "absolute",
@@ -50,6 +26,22 @@ const style = {
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: "90%", // Chiều rộng phản hồi
+  maxWidth: 1000,
+  maxHeight: "80vh", // Chiều cao tối đa
+  overflowY: "auto", // Cho phép cuộn
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "8px",
+};
+
+const styleImport = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "40%", // Chiều rộng phản hồi
   maxWidth: 1000,
   maxHeight: "80vh", // Chiều cao tối đa
   overflowY: "auto", // Cho phép cuộn
@@ -77,7 +69,6 @@ const Products = () => {
     additional: [],
     featured: [],
     secondary: [],
-    banner: [],
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,17 +84,22 @@ const Products = () => {
 
   const [showByStatus, setShowByStatus] = useState("");
   const [showBysetCatBy, setCatBy] = useState("");
+  const [showByBrandBy, setBrandBy] = useState("");
 
   const [products, setProducts] = useState([]);
-
   const [currentPage, setCurrentPage] = useState(1);
-
   const resultsPerPage = 5;
 
-  // Lọc danh sách sản phẩm theo trạng thái
+  // Lọc danh sách sản phẩm theo trạng thái, thương hiệu và danh mục
   const filteredProducts = products.filter((product) => {
-    if (showByStatus === "") return true; // Hiển thị tất cả nếu không có trạng thái chọn
-    return product.status === Number(showByStatus); // Chuyển đổi trạng thái sang số
+    const matchesStatus =
+      showByStatus === "" || product.status === Number(showByStatus);
+    const matchesBrand =
+      showByBrandBy === "" || product.brandId === Number(showByBrandBy);
+    const matchesCategory =
+      showBysetCatBy === "" || product.categoryId === Number(showBysetCatBy); // Giả sử product.categoryId chứa ID danh mục
+
+    return matchesStatus && matchesBrand && matchesCategory; // Phải thỏa mãn cả ba điều kiện
   });
 
   // Phân trang
@@ -132,15 +128,19 @@ const Products = () => {
 
     console.log("Main Image:", { file, url: previewUrl });
 
-    setImages([{ file, main: true, featured: false, secondary: false }]);
-    setImagePreviews({
+    setImages((prevImages) => [
+      { file, main: true, featured: false, secondary: false },
+      ...prevImages.filter((img) => !img.main),
+    ]);
+
+    setImagePreviews((prevPreviews) => ({
       main: [
         { url: previewUrl, main: true, featured: false, secondary: false },
       ],
-      additional: [],
-      featured: [],
-      secondary: [],
-    });
+      additional: prevPreviews.additional,
+      featured: prevPreviews.featured,
+      secondary: prevPreviews.secondary,
+    }));
   };
 
   const handleAdditionalImagesChange = (event) => {
@@ -255,6 +255,7 @@ const Products = () => {
             try {
               imageUrl = await getDownloadURL(storageRef);
               console.log("Image already exists:", imageUrl);
+              return;
             } catch (error) {
               await uploadBytes(storageRef, image.file);
               imageUrl = await getDownloadURL(storageRef);
@@ -314,7 +315,149 @@ const Products = () => {
     }
   };
 
-  
+  const handleSubmitProductUpdate = async (e) => {
+    e.preventDefault();
+
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      let imageUrls = [];
+
+      // Kết hợp tất cả các loại ảnh từ images và imagePreviews
+      const allImages = [
+        ...images,
+        ...imagePreviews.main,
+        ...imagePreviews.additional,
+        ...imagePreviews.featured,
+        ...imagePreviews.secondary,
+      ];
+
+      if (allImages && allImages.length > 0) {
+        imageUrls = await Promise.all(
+          allImages.map(async (image) => {
+            // Kiểm tra xem image có tồn tại và có thuộc tính file
+            if (!image || !image.file) {
+              console.warn(
+                "Hình ảnh không được xác định hoặc không hợp lệ, bị bỏ qua..."
+              );
+              return null; // Bỏ qua ảnh không hợp lệ
+            }
+
+            const storageRef = ref(
+              storage,
+              `images/sheepshop/${image.file.name}`
+            );
+            let imageUrl;
+
+            try {
+              // Kiểm tra xem ảnh đã tồn tại chưa
+              imageUrl = await getDownloadURL(storageRef);
+              console.log("Hình ảnh đã tồn tại:", imageUrl);
+              return {
+                url: imageUrl,
+                mainImage: image.main,
+              };
+            } catch (error) {
+              // Nếu không tồn tại, tải lên ảnh mới
+              await uploadBytes(storageRef, image.file);
+              imageUrl = await getDownloadURL(storageRef);
+              console.log("Hình ảnh đã được tải lên:", imageUrl);
+              return {
+                url: imageUrl,
+                mainImage: image.main,
+              };
+            }
+          })
+        );
+
+        // Lọc ra các giá trị null (các ảnh không hợp lệ)
+        imageUrls = imageUrls.filter((url) => url !== null);
+      }
+
+      // Update product details
+      const productResponse = await axios.put(`/admin/products/${id}`, {
+        code,
+        barcode,
+        name,
+        weight,
+        price,
+        brandId: brand,
+        categoryId: category,
+      });
+
+      const productId = productResponse.data.id;
+
+      if (imageUrls === null) {
+        // Delete existing images
+        await axios.delete(`/admin/product/image/${productId}`);
+      }
+
+      // Add new images
+      await Promise.all(
+        imageUrls.map((image) =>
+          axios.post(`/admin/product/image`, {
+            productId,
+            imageUrl: image.url,
+            mainImage: image.mainImage ? 1 : 0, // Convert boolean to 1 or 0
+          })
+        )
+      );
+
+      fetchProducts();
+      handleCloseModelAddAndUpdateProduct();
+      resetFormFields();
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenModelUpdateProduct = (product) => {
+    setId(product.id);
+    setCode(product.code);
+    setBarcode(product.barcode);
+    setName(product.name);
+    setPrice(product.price);
+    setWeight(product.weight);
+    setCategory(product.categoryId);
+    setBrand(product.brandId);
+
+    const mainImage = product.imageUrl
+      ? [{ url: product.imageUrl, main: true }]
+      : [];
+    const listImageNotMain = Array.isArray(product.notMainImages)
+      ? product.notMainImages
+      : [];
+
+    const additionalImages = listImageNotMain
+      .slice(0, 1)
+      .map((url) => ({ file: { url }, main: false, additional: true }));
+    const featuredImages = listImageNotMain
+      .slice(1, 2)
+      .map((url) => ({ file: { url }, main: false, featured: true }));
+    const secondaryImages = listImageNotMain
+      .slice(2, 3)
+      .map((url) => ({ file: { url }, main: false, secondary: true }));
+
+    // Set images and previews
+    setImages([
+      ...mainImage,
+      ...additionalImages,
+      ...featuredImages,
+      ...secondaryImages,
+    ]);
+    setImagePreviews({
+      main: mainImage,
+      additional: additionalImages.map((item) => item.file),
+      featured: featuredImages.map((item) => item.file),
+      secondary: secondaryImages.map((item) => item.file),
+    });
+
+    setOpenModelUpdateProduct(true);
+  };
 
   const resetFormFields = () => {
     setCode("");
@@ -366,100 +509,43 @@ const Products = () => {
 
   const [openModelAddProduct, setModelAddProduct] = useState(false);
   const [openModelUpdateProduct, setOpenModelUpdateProduct] = useState(false);
+  const [openModelImport, setModelImport] = useState(false);
+  const handleOpenModelImport = () => setModelImport(true);
   const handleOpenModelAddProduct = () => setModelAddProduct(true);
   const handleCloseModelAddAndUpdateProduct = () => {
+    setModelImport(false);
     setModelAddProduct(false);
     setOpenModelUpdateProduct(false);
     setId(null); // Reset ID sản phẩm
     resetFormFields(); // Reset form fields when closing
   };
 
-  const handleOpenModelUpdateProduct = (product) => {
-    setId(product.id);
-    setCode(product.code);
-    setBarcode(product.barcode);
-    setName(product.name);
-    setPrice(product.price);
-    setWeight(product.weight);
-    setCategory(product.categoryId);
-    setBrand(product.brandId);
-
-    // Lấy ảnh chính
-    const mainImage = product.imageUrl
-      ? [{ url: product.imageUrl, main: true }]
-      : [];
-
-    // Lấy danh sách tất cả các ảnh phụ
-    const listImageNotMain = Array.isArray(product.notMainImages)
-      ? product.notMainImages
-      : [];
-
-    // Phân loại các ảnh phụ
-    const additionalImages =
-      listImageNotMain.length > 0
-        ? [
-            {
-              file: { url: listImageNotMain[0] },
-              main: false,
-              additional: true,
-            },
-          ]
-        : [];
-    const featuredImages =
-      listImageNotMain.length > 1
-        ? [{ file: { url: listImageNotMain[1] }, main: false, featured: true }]
-        : [];
-    const secondaryImages =
-      listImageNotMain.length > 2
-        ? [{ file: { url: listImageNotMain[2] }, main: false, secondary: true }]
-        : [];
-
-    setImages([
-      ...mainImage,
-      ...additionalImages,
-      ...featuredImages,
-      ...secondaryImages,
-    ]);
-
-    setImagePreviews({
-      main: mainImage,
-      additional: additionalImages.map((item) => item.file),
-      featured: featuredImages.map((item) => item.file),
-      secondary: secondaryImages.map((item) => item.file),
-    });
-
-    setOpenModelUpdateProduct(true);
-  };
-
   return (
     <>
       <div className="right-content w-100">
-        <div className="card shadow border-0 w-100 flex-row p-4">
-          <h5 className="mb-0">Danh sách sản phẩm</h5>
-          <Breadcrumb aria-label="breadcrumb" className="ml-auto breadcrumbs_">
-            <StyledBreadcrumb
-              component="a"
-              href="/"
-              label="Tổng quan"
-              icon={<HomeIcon fontSize="small" />}
-            />
 
-            <StyledBreadcrumb
-              label="Danh sách sản phẩm"
-              deleteIcon={<ExpandMore />}
-            />
-          </Breadcrumb>
-        </div>
 
         <div className="card shadow border-0 p-3 mt-4">
-          <h3 className="hd">Sản phẩm đang bán</h3>
+       
+          <div className="row">
+          
+            <div className="col-md-3">
+              <h3 className="hd">Danh sách sản phẩm</h3>
+            </div>
 
-          <Button
-            className="btn-blue btn-lg btn-big"
-            onClick={handleOpenModelAddProduct}
-          >
-            add
-          </Button>
+            <div className="col-md-3">
+              <Button
+                className="btn-blue btn-lg btn-big"
+                onClick={handleOpenModelAddProduct} >Thêm sản phẩm mới</Button>
+            </div>
+
+            <div className="col-md-3">
+              <Button
+                className="btn-blue btn-lg btn-big"
+                onClick={handleOpenModelImport} > Import</Button>
+            </div>
+
+          </div>
 
           <div className="row cardFilters mt-3">
             <div className="col-md-3">
@@ -497,7 +583,35 @@ const Products = () => {
                   <MenuItem value="">
                     <em>None</em>
                   </MenuItem>
-                  <MenuItem value={10}>Ten</MenuItem>
+                  {categoryList.map((cate) => (
+                    <MenuItem key={cate.id} value={cate.id}>
+                      {cate.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            <div className="col-md-3">
+              <h4>Hiển thị theo Thương hiệu</h4>
+              <FormControl size="small" className="w-100">
+                <Select
+                  value={showByBrandBy}
+                  onChange={(e) => {
+                    setBrandBy(e.target.value);
+                  }}
+                  displayEmpty
+                  inputProps={{ "aria-label": "Without label" }}
+                  className="w-100"
+                >
+                  <MenuItem value="">
+                    <em>None</em>
+                  </MenuItem>
+                  {brandList.map((bra) => (
+                    <MenuItem key={bra.id} value={bra.id}>
+                      {bra.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </div>
@@ -512,7 +626,6 @@ const Products = () => {
                   <th style={{ width: "300px" }}>Sản phẩm</th>
                   <th>Danh mục</th>
                   <th>Thương hiệu</th>
-                  <th>Giá bán</th>
                   <th>Trạng thái</th>
                   <th>Hành động</th>
                 </tr>
@@ -540,15 +653,7 @@ const Products = () => {
                       </div>
                     </td>
                     <td>{product.categoryName}</td>
-                    <td>{product.brandName}</td>
-                    <td>
-                      <div style={{ width: "80px" }}>
-                        {/* <del className="old">$21.00</del> */}
-                        <span className="new text-danger">
-                          {formatPrice(product.price)}
-                        </span>
-                      </div>
-                    </td>
+                    <td>{product.brandName}</td>                 
                     <td>
                       {product.status === 1
                         ? "Cho phép kinh doanh"
@@ -591,6 +696,83 @@ const Products = () => {
         </div>
       </div>
 
+      {/* Import sản phẩm */}
+      <Modal
+        keepMounted
+        open={openModelImport}
+        aria-labelledby="keep-mounted-modal-title"
+        aria-describedby="keep-mounted-modal-description"
+      >
+        <Box sx={styleImport}>
+          <Typography
+            id="keep-mounted-modal-title"
+            variant="h6"
+            component="span"
+          >
+            Nhập hàng hóa từ file dữ liệu (Tải về file mẫu: Excel file ) 
+          </Typography>
+          <Typography
+            id="keep-mounted-modal-description"
+            component="span"
+            sx={{ mt: 2 }}
+          >
+            <form className="form  mt-3">
+              <div className="row">
+                <div className="col-md-12">
+                  <div className="card p-2 mt-0">
+                    <div className="row">
+                      <div className="col-md-12">
+                        <div className="row">
+                          <div className="col">
+                           
+                    
+                            <div className="form-group">
+                              <div className="row">
+                                <div className="col-md-6">
+                                  
+                                </div>
+                                <div className="col-md-6">
+                                <Button className="btn-blue mt-2">Chọn file dữ liệu</Button>                    
+                                </div>
+                              </div>
+                            </div>
+
+
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card p-4 mt-0">
+                <div className="row">
+                  <div className="col mt-2">
+                    <Button
+                      className="btn-blue btn-lg btn-big"
+                      type="submit"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Đang thực hiện..." : "Thực hiện"}
+                    </Button>
+                  </div>
+                  <div className="col mt-2">
+                    <Button
+                      className="btn-big btn-close"
+                      onClick={handleCloseModelAddAndUpdateProduct}
+                    >
+                      Bỏ qua
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </Typography>
+        </Box>
+      </Modal>
+
       {/* Thêm sản phẩm */}
       <Modal
         keepMounted
@@ -599,10 +781,18 @@ const Products = () => {
         aria-describedby="keep-mounted-modal-description"
       >
         <Box sx={style}>
-          <Typography id="keep-mounted-modal-title" variant="h6" component="h2">
+          <Typography
+            id="keep-mounted-modal-title"
+            variant="h6"
+            component="span"
+          >
             Thêm sản phẩm
           </Typography>
-          <Typography id="keep-mounted-modal-description" sx={{ mt: 2 }}>
+          <Typography
+            id="keep-mounted-modal-description"
+            component="span"
+            sx={{ mt: 2 }}
+          >
             <form className="form" onSubmit={handleSubmitProductAdd}>
               <div className="row">
                 <div className="col-md-12">
@@ -620,7 +810,7 @@ const Products = () => {
                                   <input
                                     type="text"
                                     placeholder="Mã hàng tự động"
-                                    value={code}
+                                    value={code || ""}
                                     onChange={(e) => setCode(e.target.value)}
                                   />
                                 </div>
@@ -635,7 +825,7 @@ const Products = () => {
                                 <div className="col-md-9">
                                   <input
                                     type="text"
-                                    value={barcode}
+                                    value={barcode || ""}
                                     onChange={(e) => setBarcode(e.target.value)}
                                   />
                                 </div>
@@ -650,7 +840,7 @@ const Products = () => {
                                 <div className="col-md-9">
                                   <input
                                     type="text"
-                                    value={name}
+                                    value={name || ""}
                                     onChange={(e) => setName(e.target.value)}
                                   />
                                 </div>
@@ -665,7 +855,7 @@ const Products = () => {
                                 <div className="col-md-9">
                                   <input
                                     type="text"
-                                    value={price}
+                                    value={price || ""}
                                     onChange={(e) => setPrice(e.target.value)}
                                   />
                                 </div>
@@ -680,7 +870,7 @@ const Products = () => {
                                 <div className="col-md-9">
                                   <input
                                     type="text"
-                                    value={weight}
+                                    value={weight || ""}
                                     onChange={(e) => setWeight(e.target.value)}
                                   />
                                 </div>
@@ -695,7 +885,7 @@ const Products = () => {
                             <h6 className="form-select-title">Danh mục</h6>
 
                             <Select
-                              value={category}
+                              value={category || ""}
                               onChange={handleChangeCategory}
                               displayEmpty
                               inputProps={{ "aria-label": "Without label" }}
@@ -714,7 +904,7 @@ const Products = () => {
                           <div className="col">
                             <h6 className="form-select-title">Thương hiệu</h6>
                             <Select
-                              value={brand}
+                              value={brand || ""}
                               onChange={handleChangeBrand}
                               displayEmpty
                               inputProps={{ "aria-label": "Without label" }}
@@ -931,10 +1121,18 @@ const Products = () => {
         aria-describedby="keep-mounted-modal-description"
       >
         <Box sx={style}>
-          <Typography id="keep-mounted-modal-title" variant="h6" component="h2">
+          <Typography
+            id="keep-mounted-modal-title"
+            variant="h6"
+            component="span"
+          >
             Sửa sản phẩm
           </Typography>
-          <Typography id="keep-mounted-modal-description" sx={{ mt: 2 }}>
+          <Typography
+            id="keep-mounted-modal-description"
+            component="span"
+            sx={{ mt: 2 }}
+          >
             <form className="form" onSubmit={handleSubmitProductUpdate}>
               <div className="row">
                 <div className="col-md-12">
@@ -952,7 +1150,7 @@ const Products = () => {
                                   <input
                                     type="text"
                                     placeholder="Mã hàng tự động"
-                                    value={code}
+                                    value={code || ""}
                                     onChange={(e) => setCode(e.target.value)}
                                   />
                                 </div>
@@ -967,7 +1165,7 @@ const Products = () => {
                                 <div className="col-md-9">
                                   <input
                                     type="text"
-                                    value={barcode}
+                                    value={barcode || ""}
                                     onChange={(e) => setBarcode(e.target.value)}
                                   />
                                 </div>
@@ -982,7 +1180,7 @@ const Products = () => {
                                 <div className="col-md-9">
                                   <input
                                     type="text"
-                                    value={name}
+                                    value={name || ""}
                                     onChange={(e) => setName(e.target.value)}
                                   />
                                 </div>
@@ -997,7 +1195,7 @@ const Products = () => {
                                 <div className="col-md-9">
                                   <input
                                     type="text"
-                                    value={price}
+                                    value={price || ""}
                                     onChange={(e) => setPrice(e.target.value)}
                                   />
                                 </div>
@@ -1012,7 +1210,7 @@ const Products = () => {
                                 <div className="col-md-9">
                                   <input
                                     type="text"
-                                    value={weight}
+                                    value={weight || ""}
                                     onChange={(e) => setWeight(e.target.value)}
                                   />
                                 </div>
@@ -1027,7 +1225,7 @@ const Products = () => {
                             <h6 className="form-select-title">Danh mục</h6>
 
                             <Select
-                              value={category}
+                              value={category || ""}
                               onChange={handleChangeCategory}
                               displayEmpty
                               inputProps={{ "aria-label": "Without label" }}
@@ -1046,7 +1244,7 @@ const Products = () => {
                           <div className="col">
                             <h6 className="form-select-title">Thương hiệu</h6>
                             <Select
-                              value={brand}
+                              value={brand || ""}
                               onChange={handleChangeBrand}
                               displayEmpty
                               inputProps={{ "aria-label": "Without label" }}
