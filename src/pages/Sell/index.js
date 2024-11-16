@@ -185,27 +185,43 @@ const Sell = () => {
 
   const deleteProductDetailToCart = async (id) => {
     try {
-        // Gọi API để xóa sản phẩm
-        await axios.delete(`/sale/invoice-details/${id}`);
-        
-        if (selectedBillId) {
-          setSelectedBillId(selectedBillId);
-          handleBillSelect(selectedBillId);
-          fetchProductDetails();
+      // Fetch current product details to get the quantity
+      const productDetailResponse = await axios.get(
+        `/sale/invoice-details/${id}`
+      );
+      const currentQuantity = productDetailResponse.data.quantity;
+      const currentId = productDetailResponse.data.productDetails.id;
+
+      console.log("Quantity: " + currentQuantity);
+      console.log("ProductDetailId: " + currentId);
+
+      // Assuming you want to set the quantity to 0 (or any logic you need)
+      await axios.put(
+        `/admin/productdetail/delete-productdetail-update-quantity/${currentId}`,
+        {
+          quantity: currentQuantity, // or however you want to handle the quantity
         }
-        
+      );
+
+      // Call API to delete the product
+      await axios.delete(`/sale/invoice-details/${id}`);
+      console.log("Xóa thành công sản phẩm khỏi giỏ hàng");
+      if (selectedBillId) {
+        setSelectedBillId(selectedBillId);
+        handleBillSelect(selectedBillId);
+        fetchProductDetails();
+      }
     } catch (error) {
-        console.error("Error deleting bill:", error);
-        // Hiển thị thông báo lỗi cho người dùng nếu cần
-        // Ví dụ: setError('Không thể xóa hóa đơn. Vui lòng thử lại.');
+      console.error("Error deleting product detail:", error);
+      // Consider displaying an error message to the user
     }
-};
+  };
 
   const handleBillSelect = async (billId) => {
     setSelectedBillId(billId); // Đặt ID hóa đơn được chọn
 
     try {
-      const response = await axios.get(`/sale/invoice-details/${billId}`);
+      const response = await axios.get(`/sale/invoice-details/bill/${billId}`);
       if (response.status === 200) {
         setInvoiceDetails(response.data); // Cập nhật chi tiết hóa đơn
         // Cập nhật giỏ hàng từ chi tiết hóa đơn
@@ -243,6 +259,49 @@ const Sell = () => {
       if (selectedBillId) {
         // Kiểm tra xem đã có hóa đơn được chọn chưa
         const addProductDetailToBillDetailResponse = await axios.post(
+          `/sale/invoice-details`,
+          {
+            productDetailId: updatedProductDetail.id,
+            billId: selectedBillId,
+            quantity: 1, // Số lượng sản phẩm thêm vào hóa đơn
+            unitPrice: updatedProductDetail.price, // Giả sử giá được gửi lại trong phản hồi
+          }
+        );
+
+        console.log(
+          "Sản phẩm đã được thêm vào hóa đơn:",
+          addProductDetailToBillDetailResponse.data
+        );
+        handleBillSelect(selectedBillId);
+        fetchProductDetails();
+      } else {
+        console.error("Chưa chọn hóa đơn để thêm sản phẩm.");
+      }
+    } catch (error) {
+      console.error(
+        "Lỗi khi thêm sản phẩm vào giỏ hàng:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  const increaseQuantity = async (productDetailId) => {
+    try {
+      // Cập nhật số lượng sản phẩm
+      const updateQuantityResponse = await axios.put(
+        `/admin/productdetail/update-quantity/${productDetailId}`,
+        {
+          quantity: 1, // Hoặc điều chỉnh theo logic của bạn
+        }
+      );
+
+      // Lấy thông tin sản phẩm đã cập nhật
+      const updatedProductDetail = updateQuantityResponse.data;
+
+      // Thêm sản phẩm vào chi tiết hóa đơn
+      if (selectedBillId) {
+        // Kiểm tra xem đã có hóa đơn được chọn chưa
+        const addProductDetailToBillDetailResponse = await axios.put(
           `/sale/invoice-details`,
           {
             productDetailId: updatedProductDetail.id,
@@ -548,13 +607,21 @@ const Sell = () => {
                 <table className="table table-bordered v-align">
                   <tbody>
                     {invoiceDetails.map((detail) => (
-                      <tr key={detail.invoiceId} className="shadow card-sale-tr">
+                      <tr
+                        key={detail.invoiceId}
+                        className="shadow card-sale-tr"
+                      >
                         <td style={{ width: "100px" }}>
                           <div className="actions d-flex align-items-center">
-                            <Button className="error" color="error" onClick={() => deleteProductDetailToCart(detail.invoiceId)}>
+                            <Button
+                              className="error"
+                              color="error"
+                              onClick={() =>
+                                deleteProductDetailToCart(detail.invoiceId)
+                              }
+                            >
                               <MdDelete />
                             </Button>
-                             <span className="pl-2">{detail.billId}</span>
                           </div>
                         </td>
                         <td style={{ width: "350px" }}>
@@ -588,7 +655,9 @@ const Sell = () => {
                                 readOnly
                               />
                             </div>
-                            <Button className="">
+                            <Button
+                              onClick={() => increaseQuantity(detail.productDetailId)}
+                            >
                               <MdOutlineControlPoint />
                             </Button>
                           </div>
