@@ -18,6 +18,8 @@ import Pagination from "@mui/material/Pagination";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
+import Swal from "sweetalert2";
+import { confirmAlert } from 'react-confirm-alert';
 
 
 const style = {
@@ -241,79 +243,111 @@ const Products = () => {
     setIsSubmitting(true);
 
     try {
-      let imageUrls = [];
+        let imageUrls = [];
 
-      if (images && images.length > 0) {
-        imageUrls = await Promise.all(
-          images.map(async (image) => {
-            const storageRef = ref(
-              storage,
-              `images/sheepshop/${image.file.name}`
+        if (images && images.length > 0) {
+            imageUrls = await Promise.all(
+                images.map(async (image) => {
+                    const storageRef = ref(
+                        storage,
+                        `images/sheepshop/${image.file.name}`
+                    );
+                    let imageUrl;
+
+                    try {
+                        // Kiểm tra xem hình ảnh đã tồn tại chưa
+                        imageUrl = await getDownloadURL(storageRef);
+                        console.log("Image already exists:", imageUrl);
+                        return {
+                            url: imageUrl,
+                            mainImage: image.main,
+                        };
+                    } catch (error) {
+                        // Nếu chưa tồn tại, upload hình ảnh
+                        await uploadBytes(storageRef, image.file);
+                        imageUrl = await getDownloadURL(storageRef);
+                        console.log("Image uploaded:", imageUrl);
+                    }
+
+                    return {
+                        url: imageUrl,
+                        mainImage: image.main,
+                    };
+                })
             );
-            let imageUrl;
+        }
 
-            try {
-              imageUrl = await getDownloadURL(storageRef);
-              console.log("Image already exists:", imageUrl);
-              return;
-            } catch (error) {
-              await uploadBytes(storageRef, image.file);
-              imageUrl = await getDownloadURL(storageRef);
-              console.log("Image uploaded:", imageUrl);
-            }
+        // Gửi yêu cầu thêm sản phẩm
+        const productResponse = await axios.post(`/admin/products`, {
+            code,
+            barcode,
+            name,
+            weight,
+            price,
+            brandId: brand,
+            categoryId: category,
+        });
 
-            return {
-              url: imageUrl,
-              mainImage: image.main,
-            };
-          })
+        const productId = productResponse.data.id;
+
+        // Gửi yêu cầu thêm hình ảnh sản phẩm
+        await Promise.all(
+            imageUrls.map((image) =>
+                axios.post(`/admin/product/image`, {
+                    productId,
+                    imageUrl: image.url,
+                    mainImage: image.mainImage ? 1 : 0, // Chuyển đổi boolean sang 1 hoặc 0
+                })
+            )
         );
-      }
 
-      const productResponse = await axios.post(`/admin/products`, {
-        code,
-        barcode,
-        name,
-        weight,
-        price,
-        brandId: brand,
-        categoryId: category,
+        handleCloseModelAddAndUpdateProduct();
+
+         // Xác nhận trước khi thêm sản phẩm
+        const result = await Swal.fire({
+          title: 'Xác nhận',
+          text: "Bạn có chắc chắn muốn thêm sản phẩm này không?",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Có',
+          cancelButtonText: 'Không'
       });
 
-      const productId = productResponse.data.id;
+        // Nếu người dùng không xác nhận, dừng lại
+        if (!result.isConfirmed) {
+            return;
+        }
 
-      await Promise.all(
-        imageUrls.map((image) =>
-          axios.post(`/admin/product/image`, {
-            productId,
-            imageUrl: image.url,
-            mainImage: image.mainImage ? 1 : 0, // Convert boolean to 1 or 0
-          })
-        )
-      );
-
-      fetchProducts();
-      handleCloseModelAddAndUpdateProduct();
-      resetFormFields();
+        // Cập nhật danh sách sản phẩm và đặt lại form
+        fetchProducts();
+        resetFormFields();
     } catch (error) {
-      if (error.response) {
-        console.error("Server error:", error.response.data);
-        alert(
-          `Error from server: ${
-            error.response.data.message || "An error occurred."
-          }`
-        );
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-        alert("No response received from server. Please try again.");
-      } else {
-        console.error("Error:", error.message);
-        alert(`Error: ${error.message}`);
-      }
+        if (error.response) {
+            console.error("Server error:", error.response.data);
+            Swal.fire({
+                title: 'Lỗi',
+                text: error.response.data.message || "Đã có lỗi xảy ra.",
+                icon: 'error'
+            });
+        } else if (error.request) {
+            console.error("No response received:", error.request);
+            Swal.fire({
+                title: 'Lỗi',
+                text: "Không nhận được phản hồi từ máy chủ. Vui lòng thử lại.",
+                icon: 'error'
+            });
+        } else {
+            console.error("Error:", error.message);
+            Swal.fire({
+                title: 'Lỗi',
+                text: error.message,
+                icon: 'error'
+            });
+        }
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
-  };
+};
 
   const handleSubmitProductUpdate = async (e) => {
     e.preventDefault();
@@ -405,8 +439,22 @@ const Products = () => {
         )
       );
 
-      fetchProducts();
       handleCloseModelAddAndUpdateProduct();
+
+      const result = await Swal.fire({
+        title: 'Xác nhận',
+        text: "Bạn có chắc chắn muốn sửa sản phẩm này không?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Có',
+        cancelButtonText: 'Không'
+      });
+  
+      if (!result.isConfirmed) {
+          return; // Ngừng nếu người dùng không xác nhận
+      }
+
+      fetchProducts();
       resetFormFields();
     } catch (error) {
       console.error("Error:", error);

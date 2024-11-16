@@ -19,7 +19,7 @@ h4{line-height: 32px;}
 .btn-lg{padding:5px 25px !important ;}
 .btn-big{padding: 10px 25px !important; font-size: 16px !important;}
 .btn-big svg{font-size: 25px !important; margin-left: 7px;}
-.btn-addBill {padding-right: 40px !important;}
+
 .btn-round{border-radius: 30px !important;}
 
 .full{max-width: 100% !important; flex: 0 0 100% !important ; width: 100% !important;}
@@ -101,15 +101,9 @@ body.dark header button.rounded-circle{background:#112755 !important ;}
 body.dark header button.rounded-circle svg{color: #fff !important;}
 
 
-header .part2{padding-left: 50px;}
-
-.searchBox{width: 500px; height: 40px; background: #f0f5ff; border-radius: 6px; padding: 3px 15px;}
-
 body.dark .searchBox{background: #12254e;}
 
-.searchBox input{background: transparent; border: 0px; outline: none; padding-left: 0px;
-font-size: 14px; color: #292929;}
-.searchBox input::-webkit-input-placeholder{color: rgba(0,0,0,0.6);}
+
 
 body.dark .searchBox input,body.dark .searchBox input::-webkit-input-placeholder,body.dark .searchBox svg{color:rgba(255,255,255,0.7) ;}
 
@@ -231,6 +225,7 @@ border-radius: 100%; position: absolute; top: -20px; right: -20px; opacity: 0.5;
 .main .content.toggle{width: 100%; flex: 0 0 100%;}
 
 .right-content{padding: 90px 30px; padding-bottom: 10px;}
+.right-content-cart {padding: 35px 10px; padding-bottom: 10px;}
 
 .dashboardBoxWrapper{gap: 20px; width: 100%; flex-wrap: wrap;}
 .dashboardBoxWrapper .dashboardBox{width: 48%; height: 170px; border-radius: 10px; overflow: hidden; padding: 20px; display: flex; flex-direction: column;
@@ -547,8 +542,13 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
 
   .MuiRating-root *{color: #faaf00 !important;}
 
-
-  .searchBoxProduct{
+  .searchBox{ height: 40px; background: #f0f5ff; border-radius: 6px; padding: 3px 15px;}
+ 
+  .searchBox input{background: transparent; border: 0px; outline: none; padding-left: 0px;
+    font-size: 14px; color: #292929;}
+    .searchBox input::-webkit-input-placeholder{color: rgba(0,0,0,0.6);}
+  
+    .searchBoxProduct{
     position: absolute;
     top: 55px;
     height: auto;
@@ -565,25 +565,129 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
 
   .header-sale-box{
     background: #0070F4;
+    height: 50px !important;
+    
+  }
+
+  .searchBox-sale input{
+      width: 350px !important;
   }
 
 
+  header button.remove-bill {
+    min-width: 30px !important;
+    width: 30px !important; /* Cải thiện chiều rộng */
+    height: 20px !important; 
+    background: #0858f7 !important; 
+    color: #0858f7; 
+  } 
+  
+  header button.remove-bill svg {
+    color: #d8d8d8; 
+    font-size: 18px !important; 
+    transition: all 0.2s ease-in-out;
+  }
+  
+  header button.remove-bill:hover svg {
+    color: #ff6179 !important;
+  }
+  
+  .btn-addBill {
+    padding: 13px 50px 10px 10px !important;
+    margin-left: 1px !important;
+    margin-top: 4px !important;
+    border-radius: 10px 10px 0 0 !important; /* Cong hai góc trên */
+    background: #0070F4 !important;
+    color: #fff !important; /* Màu chữ mặc định */
+  }
+  
+  .btn-addBill:hover {
+    background: #0555ce !important;
+    color: #fff !important; /* Màu chữ mặc định */
+  }
+  
+  .btn-addBill.selected {
+    background: #ebe9e9 !important; /* Màu nền khi được chọn */
+    color: #000 !important; /* Màu chữ khi được chọn */
+  }
 
-header button.remove-bill{min-width: 30px !important; width: 10px !important; height: 20px !important; background: #0858f7 !important; color: #0858f7;} 
-header button.remove-bill svg{color: #d8d8d8; font-size: 18px !important; transition: all 0.2s ease-in-out;}
 
-header button.remove-bill:hover svg{color:  #ff6179 !important;}
-
-body.dark header button.remove-bill{background:#d8d8d8 !important ;}
-body.dark header button.remove-bill svg{color: #fff !important;}
-.bill-item{
-  position: relative;
-}
-
-  .bill-item .remove-bill {
+  .btn-addBill.selected svg{
+    background: #005ac3!important; /* Màu nền khi được chọn */
+    color: #000 !important; /* Màu chữ khi được chọn */
+    border-radius: 999px;
+  }
+  
+  .bill-container {
+    display: flex; /* Sử dụng flexbox để sắp xếp các hóa đơn */
+    overflow-x: auto; /* Cho phép cuộn ngang */
+    max-width: 800px; /* Chiều rộng tối đa của khung */
+    margin: 0 8px; /* Khoảng cách giữa khung và các nút */
+    white-space: nowrap; /* Ngăn ngừa xuống dòng */
+    position: relative;
+  }
+  
+  /* Ẩn thanh cuộn */
+  .bill-container::-webkit-scrollbar {
+    display: none; /* Ẩn thanh cuộn trong trình duyệt WebKit (Chrome, Safari) */
+  }
+  
+  .bill-container {
+    -ms-overflow-style: none;  /* Ẩn thanh cuộn trong Internet Explorer và Edge */
+    scrollbar-width: none; /* Ẩn thanh cuộn trong Firefox */
+  }
+  
+  .bill-container .bill-item .remove-bill {
     position: absolute;
-    top: 8px;
-    left: 90px;
+    top: 10px;
+    left: 100px; /* Điều chỉnh nếu cần */
+    color: #fafafa !important;
+    font-size: 25px !important;
+  }
+  
+  .bill-container .bill-item .remove-bill:hover {
+    border-radius: 999px !important;
+    background: red !important;
+  }
+  
+  header button.btn-add-bill {
+    background: #0070F4 !important;
+  }
+  
+  header button.btn-add-bill:hover {
+    background: #005ac3 !important;
+  }
+  
+  header button.btn-add-bill svg:hover {
+    color: #f0f0f0 !important;
+  }
+  
+  header button.btn-add-bill svg {
+    color: #fff !important;
+  }
+  
+  .card-sale {
+    height: 550px !important;
+    max-height: 600px;
+    background-color: #ebe9e9 !important;
+    margin: 20px 0px !important; 
+  }
 
-}
-
+  .card-sale-tr{
+    background-color: #fff;
+  }
+  
+  .btn-left-bill, 
+  .btn-right-bill {
+    margin: 0px 8px !important;
+    color: #fff !important;
+    font-size: 25px !important;  
+    border-radius: 10px;
+    z-index: 1; /* Đảm bảo nút nằm trên các phần tử khác */
+    background: transparent; /* Thêm nền nếu cần */
+  }
+  
+  .btn-left-bill:hover,
+  .btn-right-bill:hover {
+    background: #0355b2 !important;
+  }
