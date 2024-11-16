@@ -19,6 +19,7 @@ import { MyContext } from "../../App";
 import "../../assets/css/product.css";
 
 import { AuthContext } from "../../context/AuthProvider";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 const Sell = () => {
   const context = useContext(MyContext);
@@ -93,6 +94,16 @@ const Sell = () => {
     }
   };
 
+  const scrollLeft = () => {
+    const billContainer = document.querySelector(".bill-container");
+    billContainer.scrollBy({ left: -200, behavior: "smooth" }); // Cuộn 200px sang trái
+  };
+
+  const scrollRight = () => {
+    const billContainer = document.querySelector(".bill-container");
+    billContainer.scrollBy({ left: 200, behavior: "smooth" }); // Cuộn 200px sang phải
+  };
+
   //////////////////////////////////////////////////////////////////////////////
 
   const formatPrice = (price) => {
@@ -108,13 +119,29 @@ const Sell = () => {
   const handleAddBillTaiQuay = async (e) => {
     e.preventDefault(); // Ngăn chặn hành động mặc định của form
 
+    // Kiểm tra số lượng hóa đơn hiện tại
+    if (billTaiQuay.length >= 10) {
+      alert("Không thể thêm hóa đơn mới. Tối đa chỉ có 10 hóa đơn.");
+      return; // Ngừng thực hiện hàm nếu đã đạt giới hạn
+    }
+
     try {
       const newBillData = {
-        // Thông tin hóa đơn mới
+        // Thông tin hóa đơn mới (cần điền thông tin phù hợp)
       };
       const response = await axios.post("/sale/billtaiquay", newBillData);
+
+      // Kiểm tra thông tin trả về
+      console.log("Hóa đơn mới:", response.data);
+
+      // Cập nhật state với hóa đơn mới
       setBillTaiQuay((prevBills) => [...prevBills, response.data]);
-      setSelectedBillId(response.data.id); // Đặt ID hóa đơn mới là ID đã chọn
+
+      // Đặt ID hóa đơn mới là ID đã chọn
+      setSelectedBillId(response.data.id);
+
+      // Log ID đã chọn
+      console.log("ID hóa đơn đã chọn:", response.data.id);
     } catch (error) {
       console.error(
         "Error adding bill tai quay:",
@@ -124,6 +151,15 @@ const Sell = () => {
   };
 
   const handleBillDelete = async (id) => {
+    // Kiểm tra nếu chỉ còn một hóa đơn
+    if (billTaiQuay.length <= 1) {
+      // Hiển thị thông báo cho người dùng
+      alert(
+        "Không thể xóa hóa đơn. Phải có ít nhất một hóa đơn trong danh sách."
+      );
+      return; // Ngừng thực hiện hàm
+    }
+
     try {
       // Gọi API để xóa hóa đơn
       const response = await axios.delete(`/sale/billtaiquay/${id}`);
@@ -148,7 +184,7 @@ const Sell = () => {
 
   const handleBillSelect = async (billId) => {
     setSelectedBillId(billId); // Đặt ID hóa đơn được chọn
-  
+
     try {
       const response = await axios.get(`/sale/invoice-details/${billId}`);
       if (response.status === 200) {
@@ -196,7 +232,7 @@ const Sell = () => {
             unitPrice: updatedProductDetail.price, // Giả sử giá được gửi lại trong phản hồi
           }
         );
-        
+
         console.log(
           "Sản phẩm đã được thêm vào hóa đơn:",
           addProductDetailToBillDetailResponse.data
@@ -232,8 +268,8 @@ const Sell = () => {
         <div className="container-fluid w-100">
           <div className="row d-flex align-items-center w-100">
             {context.windowWidth > 992 && (
-              <div className="col-sm-3 d-flex align-items-center part2 res-hide">
-                <div className="searchBox position-relative d-flex align-items-center">
+              <div className="col-sm-10 d-flex align-items-center part2 res-hide">
+                <div className="searchBox searchBox-sale position-relative d-flex align-items-center">
                   <IoSearch className="mr-2" />
                   <input
                     type="text"
@@ -244,6 +280,12 @@ const Sell = () => {
                     onBlur={() => setIsFocused(false)}
                   />
                 </div>
+
+                <IoIosArrowBack
+                  className="btn-left-bill"
+                  onClick={scrollLeft}
+                />
+
                 {query && isFocused && filteredProductDetails.length > 0 && (
                   <div
                     className="searchBoxProduct"
@@ -252,7 +294,10 @@ const Sell = () => {
                     <table className="table table-bordered v-align">
                       <tbody>
                         {filteredProductDetails.map((productDetail) => (
-                          <tr key={productDetail.id} onClick={() => addToCart(productDetail.id)}>
+                          <tr
+                            key={productDetail.id}
+                            onClick={() => addToCart(productDetail.id)}
+                          >
                             <td>{productDetail.code}</td>
                             <td>
                               <div className="d-flex productBox">
@@ -280,38 +325,41 @@ const Sell = () => {
                                   {formatPrice(productDetail.price)}
                                 </span>
                               </div>
-                            </td>                         
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 )}
-              </div>
-            )}
 
-            {context.windowWidth > 992 && (
-              <div className="col-sm-6 d-flex align-items-center part2 res-hide">
-                {billTaiQuay.map((bill, index) => (
-                  <div key={bill.id} className="bill-item">
-                    <Button
-                      className={`btn-blue btn-addBill ${
-                        selectedBillId === bill.id ? "selected" : ""
-                      }`}
-                      onClick={() => handleBillSelect(bill.id)}
-                    >
-                      Hóa đơn {index + 1}
-                    </Button>
-                    <Button
-                      className="remove-bill"
-                      onClick={() => handleBillDelete(bill.id)}
-                    >
-                      <CiCircleRemove />
-                    </Button>
-                  </div>
-                ))}
+                {/* Khung chứa các hóa đơn */}
+                <div className="bill-container">
+                  {billTaiQuay.map((bill, index) => (
+                    <div key={bill.id} className="bill-item">
+                      <Button
+                        className={`btn-blue btn-addBill ${
+                          selectedBillId === bill.id ? "selected" : ""
+                        }`}
+                        onClick={() => handleBillSelect(bill.id)}
+                      >
+                        Hóa đơn {index + 1}
+                        <CiCircleRemove
+                          className="remove-bill"
+                          onClick={() => handleBillDelete(bill.id)}
+                        />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <IoIosArrowForward
+                  className="btn-right-bill"
+                  onClick={scrollRight}
+                />
+
                 <Button
-                  className="rounded-circle ml-2 "
+                  className="rounded-circle ml-2 btn-add-bill"
                   onClick={handleAddBillTaiQuay} // Attach the function here
                 >
                   <MdOutlineControlPoint />
@@ -319,7 +367,7 @@ const Sell = () => {
               </div>
             )}
 
-            <div className="col-sm-3 d-flex align-items-center justify-content-end part3">
+            <div className="col-sm-2 d-flex align-items-center justify-content-end part3">
               <Button
                 className="rounded-circle mr-3"
                 onClick={() => context.setThemeMode(!context.themeMode)}
