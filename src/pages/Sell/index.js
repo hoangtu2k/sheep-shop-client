@@ -139,7 +139,8 @@ const Sell = () => {
 
       // Đặt ID hóa đơn mới là ID đã chọn
       setSelectedBillId(response.data.id);
-
+      handleBillSelect(response.data.id);
+      fetchProductDetails();
       // Log ID đã chọn
       console.log("ID hóa đơn đã chọn:", response.data.id);
     } catch (error) {
@@ -521,15 +522,15 @@ const Sell = () => {
         </div>
       </header>
 
-      <div className="right-content w-100">
+      <div className="right-content-cart w-100">
         <div className="row">
           <div className="col-md-8">
-            <div className="card shadow border-0 p-3 mt-4">
-              <div className="table-responsive mt-3">
+            <div className="card card-sale border-0 ">
+              <div className="table-responsive mt-1">
                 <table className="table table-bordered v-align">
                   <tbody>
                     {invoiceDetails.map((detail) => (
-                      <tr key={detail.invoiceId}>
+                      <tr key={detail.invoiceId} className="shadow card-sale-tr">
                         <td style={{ width: "100px" }}>
                           <div className="actions d-flex align-items-center">
                             <Button className="error" color="error">
