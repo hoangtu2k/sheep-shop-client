@@ -183,6 +183,24 @@ const Sell = () => {
     }
   };
 
+  const deleteProductDetailToCart = async (id) => {
+    try {
+        // Gọi API để xóa sản phẩm
+        await axios.delete(`/sale/invoice-details/${id}`);
+        
+        if (selectedBillId) {
+          setSelectedBillId(selectedBillId);
+          handleBillSelect(selectedBillId);
+          fetchProductDetails();
+        }
+        
+    } catch (error) {
+        console.error("Error deleting bill:", error);
+        // Hiển thị thông báo lỗi cho người dùng nếu cần
+        // Ví dụ: setError('Không thể xóa hóa đơn. Vui lòng thử lại.');
+    }
+};
+
   const handleBillSelect = async (billId) => {
     setSelectedBillId(billId); // Đặt ID hóa đơn được chọn
 
@@ -533,10 +551,10 @@ const Sell = () => {
                       <tr key={detail.invoiceId} className="shadow card-sale-tr">
                         <td style={{ width: "100px" }}>
                           <div className="actions d-flex align-items-center">
-                            <Button className="error" color="error">
+                            <Button className="error" color="error" onClick={() => deleteProductDetailToCart(detail.invoiceId)}>
                               <MdDelete />
                             </Button>
-                            {detail.invoiceId}
+                             <span className="pl-2">{detail.billId}</span>
                           </div>
                         </td>
                         <td style={{ width: "350px" }}>
