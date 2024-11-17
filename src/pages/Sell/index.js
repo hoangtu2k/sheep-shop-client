@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
 import { MdDelete, MdOutlineControlPoint } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
-import { CiCircleRemove, CiLight } from "react-icons/ci";
+import { CiCircleRemove } from "react-icons/ci";
 import { IoShieldHalfSharp } from "react-icons/io5";
 import { FaMinus, FaRegBell } from "react-icons/fa6";
 import Menu from "@mui/material/Menu";
@@ -24,6 +24,7 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 const Sell = () => {
   const context = useContext(MyContext);
   const { logout } = useContext(AuthContext);
+  const [themeMode] = useState(true);
 
   const { user } = useContext(AuthContext); // Lấy thông tin người dùng từ contex
   const userName = user?.name || "Tên không xác định";
@@ -355,10 +356,15 @@ const Sell = () => {
   }, [user]);
 
   useEffect(() => {
+    if (themeMode === true) {
+      document.body.classList.remove("dark");
+      document.body.classList.add("light");
+      localStorage.setItem("themeMode", "light");
+    } 
     fetchProductDetails();
     fetchBillTaiQuay();
     context.setisHideSidebarAndHeader(true);
-  }, [context]);
+  }, [context,themeMode]);
 
   return (
     <>
@@ -473,13 +479,7 @@ const Sell = () => {
               </div>
             )}
 
-            <div className="col-sm-2 d-flex align-items-center justify-content-end part3">
-              <Button
-                className="rounded-circle mr-3"
-                onClick={() => context.setThemeMode(!context.themeMode)}
-              >
-                <CiLight />
-              </Button>
+            <div className="col-sm-2 d-flex align-items-center justify-content-end part3">            
 
               <div className="dropdownWrapper position-relative">
                 <Button
@@ -726,7 +726,21 @@ const Sell = () => {
           </div>
           <div className="col-md-4">
             <div className="card shadow border-0 p-3 mt-4">
-              <div className="table-responsive mt-3"></div>
+              <div className="table-responsive form-group">
+
+               <form>
+                <h6>Người bán hàng: {userName}</h6>
+                  <input type="text"  placeholder="Tìm khách hàng" />
+                  <label>Tổng tiền hàng</label>
+                  <label>Giảm giá</label>
+                  <label>Khách cần trả</label>
+                  <label>Khách thanh toán</label>
+               </form> 
+                
+
+
+
+              </div>
             </div>
           </div>
         </div>

@@ -4,7 +4,6 @@ import logo from "../../assets/images/logo.png";
 import Button from "@mui/material/Button";
 import { MdMenuOpen } from "react-icons/md";
 import { MdOutlineMenu } from "react-icons/md";
-import SearchBox from "../SearchBox";
 import { CiLight } from "react-icons/ci";
 import { IoMenu, IoShieldHalfSharp } from "react-icons/io5";
 import { FaRegBell } from "react-icons/fa6";
@@ -96,7 +95,7 @@ const Header = () => {
                     <MdOutlineMenu />
                   )}
                 </Button>
-                <SearchBox />
+
               </div>
             )}
 

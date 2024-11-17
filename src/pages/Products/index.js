@@ -847,7 +847,7 @@ const Products = () => {
                   <div className="card p-2 mt-0">
                     <div className="row">
                       <div className="col-md-7">
-                        <div className="row">
+                        <div className="row ">
                           <div className="col">
                             <div className="form-group">
                               <div className="row">

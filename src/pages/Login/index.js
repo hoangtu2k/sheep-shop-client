@@ -169,7 +169,7 @@ const Login = () => {
                   variant="outlined"
                   className="w-100 btn-lg btn-big loginWithGoogle"
                 >
-                  <img src={googleIcon} width="25px" alt="" /> &nbsp; Sign In
+                  <img src={googleIcon} width="25px" alt="logo" /> &nbsp; Sign In
                   with Google
                 </Button>
               </div>
@@ -179,7 +179,7 @@ const Login = () => {
           <div className="wrapper mt-3 card border footer p-3">
             <span className="text-center">
               Don't have an account?
-              <Link to={"/signUp"} className="link color ml-2">
+              <Link to={"/admin/signUp"} className="link color ml-2">
                 Register
               </Link>
             </span>
