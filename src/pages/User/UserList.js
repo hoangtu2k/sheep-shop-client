@@ -18,7 +18,7 @@ import { toast } from "react-toastify";
 import { MyContext } from "../../App";
 import { Link, useNavigate } from "react-router-dom";
 
-import { AuthContext } from "../../context/AuthProvider";
+import { AuthContext } from "../../auth/AuthProvider";
 
 const StyledBreadcrumb = styled(Chip)(({ theme }) => {
   const backgroundColor =

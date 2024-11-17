@@ -16,7 +16,7 @@ import Logout from "@mui/icons-material/Logout";
 import { Divider } from "@mui/material";
 import { MyContext } from "../../App";
 
-import { AuthContext } from "../../context/AuthProvider";
+import { AuthContext } from "../../auth/AuthProvider";
 
 
 

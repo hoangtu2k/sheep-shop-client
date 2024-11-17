@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./App.css";
+import "./assets/css/App.css";
 import "./assets/css/responsive.css";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -8,7 +8,7 @@ import { createContext, useEffect, useState } from "react";
 
 import { publicRouters } from "./routers";
 import RequireAuth from "./auth/RequireAuth";
-import { AuthProvider } from "./context/AuthProvider";
+import { AuthProvider } from "./auth/AuthProvider";
 
 const MyContext = createContext();
 

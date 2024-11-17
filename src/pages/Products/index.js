@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import { toast } from "react-toastify";
 import { MyContext } from "../../App";
-import { storage } from "../../firebase";
+import { storage } from "../../utils/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { MdDelete } from "react-icons/md";
 import { IoCloseSharp } from "react-icons/io5";

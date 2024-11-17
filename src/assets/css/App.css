@@ -691,3 +691,7 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
   .btn-right-bill:hover {
     background: #0355b2 !important;
   }
+
+  .query_search_productdetail-sale:hover{
+    background: #9bc8de69 !important;
+  }

@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 
 import axios from '../../utils/axiosConfig';
 
-import { AuthContext } from "../../context/AuthProvider";
+import { AuthContext } from "../../auth/AuthProvider";
 
 
 const Login = () => {

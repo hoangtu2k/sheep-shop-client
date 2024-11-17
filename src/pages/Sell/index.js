@@ -18,7 +18,7 @@ import { MyContext } from "../../App";
 
 import "../../assets/css/product.css";
 
-import { AuthContext } from "../../context/AuthProvider";
+import { AuthContext } from "../../auth/AuthProvider";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 const Sell = () => {
@@ -242,18 +242,15 @@ const Sell = () => {
     }
   };
 
-  const addToCart = async (productDetailId) => {
+  const addToCart = async (productDetailId, colorId, sizeId, unitPrice) => {
     try {
       // Cập nhật số lượng sản phẩm
-      const updateQuantityResponse = await axios.put(
-        `/admin/productdetail/update-quantity/${productDetailId}`,
+      await axios.put(
+        `/admin/productdetail/update-quantity/increase/${productDetailId}`,
         {
           quantity: 1, // Hoặc điều chỉnh theo logic của bạn
         }
       );
-
-      // Lấy thông tin sản phẩm đã cập nhật
-      const updatedProductDetail = updateQuantityResponse.data;
 
       // Thêm sản phẩm vào chi tiết hóa đơn
       if (selectedBillId) {
@@ -261,10 +258,12 @@ const Sell = () => {
         const addProductDetailToBillDetailResponse = await axios.post(
           `/sale/invoice-details`,
           {
-            productDetailId: updatedProductDetail.id,
+            productDetailId: productDetailId,
             billId: selectedBillId,
             quantity: 1, // Số lượng sản phẩm thêm vào hóa đơn
-            unitPrice: updatedProductDetail.price, // Giả sử giá được gửi lại trong phản hồi
+            unitPrice: unitPrice,
+            colorId: colorId,
+            sizeId: sizeId,
           }
         );
 
@@ -285,36 +284,57 @@ const Sell = () => {
     }
   };
 
-  const increaseQuantity = async (productDetailId) => {
+  const increaseQuantity = async (id, productDetailId, colorId, sizeId) => {
     try {
       // Cập nhật số lượng sản phẩm
-      const updateQuantityResponse = await axios.put(
-        `/admin/productdetail/update-quantity/${productDetailId}`,
+      await axios.put(
+        `/admin/productdetail/update-quantity/increase/${productDetailId}`,
         {
           quantity: 1, // Hoặc điều chỉnh theo logic của bạn
         }
       );
 
-      // Lấy thông tin sản phẩm đã cập nhật
-      const updatedProductDetail = updateQuantityResponse.data;
-
       // Thêm sản phẩm vào chi tiết hóa đơn
       if (selectedBillId) {
         // Kiểm tra xem đã có hóa đơn được chọn chưa
-        const addProductDetailToBillDetailResponse = await axios.put(
-          `/sale/invoice-details`,
-          {
-            productDetailId: updatedProductDetail.id,
-            billId: selectedBillId,
-            quantity: 1, // Số lượng sản phẩm thêm vào hóa đơn
-            unitPrice: updatedProductDetail.price, // Giả sử giá được gửi lại trong phản hồi
-          }
-        );
+        await axios.put(`/sale/invoice-details/increase/${id}`, {
+          productDetailId: productDetailId,
+          billId: selectedBillId,
+          colorId: colorId,
+          sizeId: sizeId,
+        });
 
-        console.log(
-          "Sản phẩm đã được thêm vào hóa đơn:",
-          addProductDetailToBillDetailResponse.data
-        );
+        handleBillSelect(selectedBillId);
+        fetchProductDetails();
+      } else {
+        console.error("Chưa chọn hóa đơn để thêm sản phẩm.");
+      }
+    } catch (error) {
+      console.error(
+        "Lỗi khi thêm sản phẩm vào giỏ hàng:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  const reduceQuantity = async (id, productDetailId, colorId, sizeId) => {
+    try {
+      // Cập nhật số lượng sản phẩm
+      await axios.put(
+        `/admin/productdetail/update-quantity/reduce/${productDetailId}`,
+        {
+          quantity: 1, // Hoặc điều chỉnh theo logic của bạn
+        }
+      );
+
+      if (selectedBillId) {
+        await axios.put(`/sale/invoice-details/reduce/${id}`, {
+          productDetailId: productDetailId,
+          billId: selectedBillId,
+          colorId: colorId,
+          sizeId: sizeId,
+        });
+        console.log("id sản phẩm: " + productDetailId);
         handleBillSelect(selectedBillId);
         fetchProductDetails();
       } else {
@@ -373,8 +393,16 @@ const Sell = () => {
                       <tbody>
                         {filteredProductDetails.map((productDetail) => (
                           <tr
+                            className="query_search_productdetail-sale"
                             key={productDetail.id}
-                            onClick={() => addToCart(productDetail.id)}
+                            onClick={() =>
+                              addToCart(
+                                productDetail.id,
+                                productDetail.colorId,
+                                productDetail.sizeId,
+                                productDetail.price
+                              )
+                            }
                           >
                             <td>{productDetail.code}</td>
                             <td>
@@ -643,7 +671,16 @@ const Sell = () => {
                         </td>
                         <td>
                           <div className="d-flex align-items-center">
-                            <Button className="">
+                            <Button
+                              onClick={() =>
+                                reduceQuantity(
+                                  detail.invoiceId,
+                                  detail.productDetailId,
+                                  detail.colorId,
+                                  detail.sizeId
+                                )
+                              }
+                            >
                               <FaMinus />
                             </Button>
                             <div className="form-group">
@@ -656,7 +693,14 @@ const Sell = () => {
                               />
                             </div>
                             <Button
-                              onClick={() => increaseQuantity(detail.productDetailId)}
+                              onClick={() =>
+                                increaseQuantity(
+                                  detail.invoiceId,
+                                  detail.productDetailId,
+                                  detail.colorId,
+                                  detail.sizeId
+                                )
+                              }
                             >
                               <MdOutlineControlPoint />
                             </Button>

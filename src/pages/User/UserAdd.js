@@ -14,7 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import axios from "../../utils/axiosConfig";
 
-import { storage } from "../../firebase";
+import { storage } from "../../utils/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const StyledBreadcrumb = styled(Chip)(({ theme }) => {
