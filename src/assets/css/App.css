@@ -712,11 +712,11 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
       color: #ebf6ff !important;
   }
 
-  .form-of-cash {
+  /* .form-of-cash {
       background-color: #f0f1f3;
       height: 100px;
       border-radius: 10px;
-  }
+  } */
 
   .customer-search {
     position: relative;

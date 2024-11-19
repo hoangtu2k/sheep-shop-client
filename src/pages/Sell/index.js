@@ -24,6 +24,7 @@ const Sell = () => {
   const [themeMode] = useState(true);
 
   const { user } = useContext(AuthContext); // Lấy thông tin người dùng từ contex
+  const userId = user?.id;
   const userName = user?.name || "Tên không xác định";
   const roleName = user?.roleName || "Chức vụ không xác định";
   const [userImage, setUserImage] = useState("");
@@ -78,7 +79,7 @@ const Sell = () => {
 
   const fetchBillTaiQuay = async () => {
     try {
-      const response = await axios.get("/sale/billtaiquay"); // Adjust the URL as needed
+      const response = await axios.get("/sale/bill"); // Adjust the URL as needed
       setBillTaiQuay(response.data);
       // Set default selected bill to the first one if available
       if (response.data.length > 0) {
@@ -113,7 +114,7 @@ const Sell = () => {
   //////////////////////////////////////////////////////////////////////////////
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN").format(price) + " VND";
+    return new Intl.NumberFormat("vi-VN").format(price);
   };
 
   const filteredProductDetails = productDetails.filter(
@@ -133,9 +134,10 @@ const Sell = () => {
 
     try {
       const newBillData = {
-        // Thông tin hóa đơn mới (cần điền thông tin phù hợp)
+        userId: userId,
+        createName: userName
       };
-      const response = await axios.post("/sale/billtaiquay", newBillData);
+      const response = await axios.post("/sale/bill", newBillData);
 
       // Kiểm tra thông tin trả về
       console.log("Hóa đơn mới:", response.data);
@@ -169,7 +171,7 @@ const Sell = () => {
 
     try {
       // Gọi API để xóa hóa đơn
-      const response = await axios.delete(`/sale/billtaiquay/${id}`);
+      const response = await axios.delete(`/sale/bill/${id}`);
 
       // Kiểm tra mã trạng thái của phản hồi
       if (response.status === 204) {
@@ -361,6 +363,8 @@ const Sell = () => {
   }, [user]);
 
   useEffect(() => {
+    console.log("id: " + selectedBillId);
+
     if (themeMode === true) {
       document.body.classList.remove("dark");
       document.body.classList.add("light");
@@ -372,7 +376,7 @@ const Sell = () => {
   }, [context, themeMode]);
 
   const [paymentMethod, setPaymentMethod] = useState('1');
-  const [formOfPurchase, setFormOfPurchase] = useState("sellquickly");
+  const [formOfPurchase, setFormOfPurchase] = useState("0");
   const [inputCustomerSearch, setInputCustomerSearch] = useState('');
   const [suggestions, setSuggestions] = useState([]);
 
@@ -417,21 +421,56 @@ const Sell = () => {
     const value = e.target.value;
     setCityDistrict(value);
 
-    if (value.length > 2) { 
+    if (value.length > 2) {
       try {
         const response = await axios.get(`YOUR_API_URL?query=${value}`);
-        setSuggestionsAddress(response.data); 
+        setSuggestionsAddress(response.data);
       } catch (error) {
         console.error('Error fetching address:', error);
       }
     } else {
-      setSuggestionsAddress([]); 
+      setSuggestionsAddress([]);
     }
   };
 
   const handleWardChange = (e) => {
     setWard(e.target.value);
   };
+
+  // After mapping, display total amount
+  const totalAmount = invoiceDetails.reduce((acc, detail) => {
+    return acc + (detail.unitPrice * detail.quantity);
+  }, 0);
+
+
+  const handleSellquickly = async (selectedBillId) => {
+    try {
+      const payBillData = {
+        salesChannel: formOfPurchase,
+        totalAmount : totalAmount,
+        buyerName: inputCustomerSearch === null ? "Khách vãng lại" : inputCustomerSearch
+      };
+      await axios.put(`/sale/bill/${selectedBillId}`, payBillData);
+
+
+      if (billTaiQuay.length > 0) {
+        const firstBillId = billTaiQuay[0].id; // Get the ID of the first bill
+        handleBillSelect(firstBillId); // Select the first bill
+      }
+
+      fetchBillTaiQuay();
+      fetchProductDetails();
+    } catch (error) {
+      console.error(
+        "Error update bill tai quay:",
+        error.response?.data || error.message
+      );
+    }
+  }
+
+  const handleSelldelivery = async () => {
+
+  }
 
 
   return (
@@ -794,7 +833,7 @@ const Sell = () => {
 
 
 
-          {formOfPurchase === 'sellquickly' && (
+          {formOfPurchase === '0' && (
             <div className="col-md-4">
               <div className="card card-infomation border-0 p-3 mt-4">
 
@@ -830,26 +869,21 @@ const Sell = () => {
                     <h6>Tổng tiền hàng</h6>
                   </div>
                   <div className="col-md-3">
-                    <label>100.000.000</label>
+                    <label>{formatPrice(totalAmount)}</label>
                   </div>
                   <div className="col-md-9">
                     <h6>Giảm giá</h6>
                   </div>
                   <div className="col-md-3">
-                    <label>1000</label>
+                    <label>0</label>
                   </div>
                   <div className="col-md-9">
                     <h6>Khách cần trả</h6>
                   </div>
                   <div className="col-md-3">
-                    <label>1000000</label>
+                    <label>{formatPrice(totalAmount)}</label>
                   </div>
-                  <div className="col-md-9">
-                    <h6>Khách thanh toán</h6>
-                  </div>
-                  <div className="col-md-3">
-                    <label>1000000</label>
-                  </div>
+
                   <div className="col-md-12">
                     <FormControl>
                       <RadioGroup
@@ -889,14 +923,14 @@ const Sell = () => {
                   </div>
 
                   <div className="col-md-12 btn-pay">
-                    <Button className="btn-blue btn-big btn-lg full">Thanh toán</Button>
+                    <Button className="btn-blue btn-big btn-lg full" onClick={() => handleSellquickly(selectedBillId)}>Thanh toán</Button>
                   </div>
                 </div>
 
               </div>
             </div>
           )}
-          {(formOfPurchase === 'selldelivery') && (
+          {(formOfPurchase === '1') && (
             <div className="col-md-4">
               <div className="card card-infomation border-0 p-3 mt-4">
 
@@ -939,36 +973,34 @@ const Sell = () => {
                       <input type="text" placeholder="Địa chỉ chi tiết (Số nhà,ngõ,đường)" className="form-control" />
                     </div>
                     <div className="col-md-12 mt-3">
-                        <input
-                          type="text"
-                          placeholder="Tỉnh/TP - Quận/Huyện"
-                          className="form-control"
-                          value={cityDistrict}
-                          onChange={handleCityDistrictChange}
-                        />
-                        {suggestionsAddress.length > 0 && (
-                          <ul className="suggestions-list">
-                            {suggestionsAddress.map((suggestion, index) => (
-                              <li key={index}>{suggestion}</li> // Adjust based on your data structure
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                      <div className="col-md-12 mt-3">
-                        <input
-                          type="text"
-                          placeholder="Phường - Xã"
-                          className="form-control"
-                          value={ward}
-                          onChange={handleWardChange}
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        placeholder="Tỉnh/TP - Quận/Huyện"
+                        className="form-control"
+                        value={cityDistrict}
+                        onChange={handleCityDistrictChange}
+                      />
+                      {suggestionsAddress.length > 0 && (
+                        <ul className="suggestions-list">
+                          {suggestionsAddress.map((suggestion, index) => (
+                            <li key={index}>{suggestion}</li> // Adjust based on your data structure
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="col-md-12 mt-3">
+                      <input
+                        type="text"
+                        placeholder="Phường - Xã"
+                        className="form-control"
+                        value={ward}
+                        onChange={handleWardChange}
+                      />
+                    </div>
                   </div>
 
-
-
                   <div className="col-md-12 btn-pay">
-                    <Button className="btn-blue btn-big btn-lg full">Thanh toán</Button>
+                    <Button className="btn-blue btn-big btn-lg full" onClick={() => handleSelldelivery()}>Thanh toán</Button>
                   </div>
                 </div>
 
@@ -992,8 +1024,8 @@ const Sell = () => {
                 aria-labelledby="demo-row-radio-buttons-group-label"
                 name="row-radio-buttons-group"
               >
-                <FormControlLabel value="sellquickly" control={<Radio />} label="Bán nhanh" />
-                <FormControlLabel value="selldelivery" control={<Radio />} label="Bán giao hàng" />
+                <FormControlLabel value="0" control={<Radio />} label="Bán nhanh" />
+                <FormControlLabel value="1" control={<Radio />} label="Bán giao hàng" />
               </RadioGroup>
             </FormControl>
 
