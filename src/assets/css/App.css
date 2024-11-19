@@ -80,8 +80,6 @@ body.dark .link{color: rgba(255,255,255,0.6) ;}
 
 .link.color{color: #0858f7 !important; text-decoration: none;}
 
-
-
 header{width: 100%; height: 70px; background: rgba(255,255,255,0.9); position: fixed; top: 0px; left: 0px; z-index: 1000;  -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);}
 
@@ -621,7 +619,7 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
   .bill-container {
     display: flex; /* Sử dụng flexbox để sắp xếp các hóa đơn */
     overflow-x: auto; /* Cho phép cuộn ngang */
-    max-width: 800px; /* Chiều rộng tối đa của khung */
+    max-width: 550px; /* Chiều rộng tối đa của khung */
     margin: 0 8px; /* Khoảng cách giữa khung và các nút */
     white-space: nowrap; /* Ngăn ngừa xuống dòng */
     position: relative;
@@ -667,8 +665,8 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
   }
   
   .card-sale {
-    height: 550px !important;
-    max-height: 600px;
+    height: 522px !important;
+    max-height: 522px;
     background-color: #ebe9e9 !important;
     margin: 20px 0px !important; 
   }
@@ -697,6 +695,61 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
   }
 
   .card-infomation {
-    height: 648px;
-    max-height: 648px;
+    height: 600px;
   }
+
+  .btn-pay {
+    position: absolute;
+    bottom: 10px;
+  }
+ 
+  .userImg_sale {
+    border: 1px solid #ebf6ff;
+  }
+  
+  .userInfo_sale h4,
+  .userInfo_sale p {
+      color: #ebf6ff !important;
+  }
+
+  .form-of-cash {
+      background-color: #f0f1f3;
+      height: 100px;
+      border-radius: 10px;
+  }
+
+  .customer-search {
+    position: relative;
+  }
+  .customer-search input:focus{
+      border: none !important;
+  }
+  
+  .suggestion-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border: 1px solid #ccc;
+    background: white;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 1000;
+  }
+  
+  .suggestion-list li {
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .suggestion-list li:hover {
+    background-color: #f0f0f0;
+  }
+
+  footer{width: 100%; height: 60px; background: rgba(255,255,255,0.9); position: fixed; bottom: 0px; left: 0px; z-index: 1000;  -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);}
+
+
+
+

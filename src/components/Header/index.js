@@ -16,6 +16,7 @@ import { Divider } from "@mui/material";
 import { MyContext } from "../../App";
 
 import { AuthContext } from "../../auth/AuthProvider";
+import { FaUser } from "react-icons/fa";
 
 
 
@@ -237,7 +238,7 @@ const Header = () => {
                   >
                     <MenuItem onClick={handleCloseMyAccDrop}>
                       <ListItemIcon>
-                        <PersonAdd fontSize="small" />
+                      <FaUser fontSize="small"/>
                       </ListItemIcon>
                       Tài khoản của tôi
                     </MenuItem>

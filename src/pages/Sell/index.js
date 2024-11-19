@@ -2,16 +2,11 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import { Link, useNavigate } from "react-router-dom";
 
-import Button from "@mui/material/Button";
-import { MdDelete, MdOutlineControlPoint } from "react-icons/md";
+import { FaUser } from "react-icons/fa";
+import { MdAdminPanelSettings, MdDelete, MdOutlineControlPoint } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
 import { CiCircleRemove } from "react-icons/ci";
-import { IoShieldHalfSharp } from "react-icons/io5";
 import { FaMinus, FaRegBell } from "react-icons/fa6";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import PersonAdd from "@mui/icons-material/PersonAdd";
 import Logout from "@mui/icons-material/Logout";
 import { Divider } from "@mui/material";
 import { MyContext } from "../../App";
@@ -20,12 +15,8 @@ import "../../assets/css/product.css";
 
 import { AuthContext } from "../../auth/AuthProvider";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { Menu, MenuItem, ListItemIcon, FormControl, FormControlLabel, Radio, RadioGroup, TextField, Button } from '@mui/material';
 
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
 
 const Sell = () => {
   const context = useContext(MyContext);
@@ -109,6 +100,14 @@ const Sell = () => {
   const scrollRight = () => {
     const billContainer = document.querySelector(".bill-container");
     billContainer.scrollBy({ left: 200, behavior: "smooth" }); // Cuộn 200px sang phải
+  };
+
+  const handleNavigationAdmin = () => {
+    window.location.href = '/admin/dashboard';
+  };
+
+  const handleChangeFormOfPayment = (event) => {
+    setPaymentMethod(event.target.value);
   };
 
   //////////////////////////////////////////////////////////////////////////////
@@ -372,13 +371,76 @@ const Sell = () => {
     context.setisHideSidebarAndHeader(true);
   }, [context, themeMode]);
 
+  const [paymentMethod, setPaymentMethod] = useState('1');
+  const [formOfPurchase, setFormOfPurchase] = useState("sellquickly");
+  const [inputCustomerSearch, setInputCustomerSearch] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+
+  const handleChangeFormOfPurchase = (event) => {
+    setFormOfPurchase(event.target.value);
+  };
+
+  // Example customer list with IDs
+  const customers = [
+    { id: 'KH001', name: 'Nguyễn Văn A' },
+    { id: 'KH002', name: 'Trần Thị B' },
+    { id: 'KH003', name: 'Lê Văn C' },
+    { id: 'KH004', name: 'Phạm Thị D' }
+  ];
+
+  const handleChangeCustomerSearch = (event) => {
+    const value = event.target.value;
+    setInputCustomerSearch(value);
+
+    // Filter suggestions based on input
+    if (value) {
+      const filteredSuggestions = customers.filter(customer =>
+        customer.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(filteredSuggestions);
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSuggestionClickCustomerSearch = (customer) => {
+    setInputCustomerSearch(customer.name);
+    setSuggestions([]); // Clear suggestions after selection
+  };
+
+  /////////////////////////////////////////////////////////////////////////////
+  const [cityDistrict, setCityDistrict] = useState('');
+  const [ward, setWard] = useState('');
+  const [suggestionsAddress, setSuggestionsAddress] = useState([]);
+
+  const handleCityDistrictChange = async (e) => {
+    const value = e.target.value;
+    setCityDistrict(value);
+
+    if (value.length > 2) { 
+      try {
+        const response = await axios.get(`YOUR_API_URL?query=${value}`);
+        setSuggestionsAddress(response.data); 
+      } catch (error) {
+        console.error('Error fetching address:', error);
+      }
+    } else {
+      setSuggestionsAddress([]); 
+    }
+  };
+
+  const handleWardChange = (e) => {
+    setWard(e.target.value);
+  };
+
+
   return (
     <>
       <header className="d-flex align-items-center header-sale-box">
         <div className="container-fluid w-100">
           <div className="row d-flex align-items-center w-100">
             {context.windowWidth > 992 && (
-              <div className="col-sm-10 d-flex align-items-center part2 res-hide">
+              <div className="col-sm-9 d-flex align-items-center part2 res-hide">
                 <div className="searchBox searchBox-sale position-relative d-flex align-items-center">
                   <IoSearch className="mr-2" />
                   <input
@@ -484,7 +546,7 @@ const Sell = () => {
               </div>
             )}
 
-            <div className="col-sm-2 d-flex align-items-center justify-content-end part3">
+            <div className="col-sm-3 d-flex align-items-center justify-content-end part3">
 
               <div className="dropdownWrapper position-relative">
                 <Button
@@ -557,14 +619,14 @@ const Sell = () => {
                     className="myAcc d-flex align-items-center"
                     onClick={handleOpenMyAccDrop}
                   >
-                    <div className="userImg">
+                    <div className="userImg userImg_sale">
                       <span className="rounded-circle">
                         <img src={userImage} alt="User Avatar" />{" "}
                         {/* Hiển thị ảnh người dùng */}
                       </span>
                     </div>
 
-                    <div className="userInfo res-hide">
+                    <div className="userInfo userInfo_sale res-hide mt-1">
                       <h4>{userName}</h4>
                       <p className="mb-0">{roleName}</p>
                     </div>
@@ -608,15 +670,15 @@ const Sell = () => {
                   >
                     <MenuItem onClick={handleCloseMyAccDrop}>
                       <ListItemIcon>
-                        <PersonAdd fontSize="small" />
+                        <FaUser fontSize="small" />
                       </ListItemIcon>
                       Tài khoản của tôi
                     </MenuItem>
-                    <MenuItem onClick={handleCloseMyAccDrop}>
+                    <MenuItem onClick={handleNavigationAdmin}>
                       <ListItemIcon>
-                        <IoShieldHalfSharp fontSize="small" />
+                        <MdAdminPanelSettings fontSize="small" />
                       </ListItemIcon>
-                      Đặt lại mật khẩu
+                      Quản lý
                     </MenuItem>
                     <MenuItem onClick={handleLogout}>
                       <ListItemIcon>
@@ -642,7 +704,7 @@ const Sell = () => {
                     {invoiceDetails.map((detail) => (
                       <tr
                         key={detail.invoiceId}
-                        className="shadow card-sale-tr"
+                        className="card-sale-tr"
                       >
                         <td style={{ width: "100px" }}>
                           <div className="actions d-flex align-items-center">
@@ -721,7 +783,7 @@ const Sell = () => {
                 </table>
               </div>
             </div>
-            <div className="card shadow border-0 p-3 mt-4">
+            <div className="card border-0 p-2 mt-3">
               <div className="table-responsive">
                 <div className="form-group">
                   <input type="text" placeholder="Ghi chú đơn hàng" />
@@ -729,13 +791,40 @@ const Sell = () => {
               </div>
             </div>
           </div>
-          <div className="col-md-4">
-            <div className="card card-infomation shadow border-0 p-3 mt-4">
-              <div className="form-group">
+
+
+
+          {formOfPurchase === 'sellquickly' && (
+            <div className="col-md-4">
+              <div className="card card-infomation border-0 p-3 mt-4">
+
                 <div className="row">
                   <div className="col-md-12 mb-3">
                     <h6 className="mb-3">Người bán hàng: {userName}</h6>
-                    <input type="text" placeholder="Tìm khách hàng" />
+                    <div className="customer-search">
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Tìm khách hàng"
+                        value={inputCustomerSearch}
+                        onChange={handleChangeCustomerSearch}
+                      />
+                      {suggestions.length > 0 && (
+                        <ul className="suggestion-list">
+                          {suggestions.map((customer, index) => (
+                            <li key={index} onClick={() => handleSuggestionClickCustomerSearch(customer)}>
+                              <div>
+                                <strong>{customer.name}</strong>
+                                <span style={{ display: 'block', fontSize: '0.8em', color: '#666' }}>
+                                  {customer.id}
+                                </span>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                    </div>
                   </div>
                   <div className="col-md-9">
                     <h6>Tổng tiền hàng</h6>
@@ -765,7 +854,8 @@ const Sell = () => {
                     <FormControl>
                       <RadioGroup
                         row
-                        defaultValue={1}
+                        value={paymentMethod}
+                        onChange={handleChangeFormOfPayment}
                         aria-labelledby="demo-row-radio-buttons-group-label"
                         name="row-radio-buttons-group"
                       >
@@ -775,17 +865,141 @@ const Sell = () => {
                       </RadioGroup>
                     </FormControl>
                   </div>
- 
+
                   <div className="col-md-12">
-                    <Button className="btn-blue btn-big btn-lg full mt-3">Thanh toán</Button>
+                    {paymentMethod === '1' && (
+                      <div className="form-of-cash">
+
+                      </div>
+                    )}
+                    {(paymentMethod === '2') && (
+                      <div className="form-of-transfer">
+                        <Button className="btn-big btn-lg full" variant="outlined">
+                          Thêm tài khoản ngân hàng
+                        </Button>
+                      </div>
+                    )}
+                    {(paymentMethod === '3') && (
+                      <div className="form-of-wallet">
+                        <Button className="btn-big btn-lg full" variant="outlined">
+                          Thêm tài khoản ví
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="col-md-12 btn-pay">
+                    <Button className="btn-blue btn-big btn-lg full">Thanh toán</Button>
                   </div>
                 </div>
-  
+
               </div>
             </div>
-          </div>
+          )}
+          {(formOfPurchase === 'selldelivery') && (
+            <div className="col-md-4">
+              <div className="card card-infomation border-0 p-3 mt-4">
+
+                <div className="row">
+                  <div className="col-md-12 mb-3">
+                    <h6 className="mb-3">Người bán hàng: {userName}</h6>
+                    <div className="customer-search">
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Tìm khách hàng"
+                        value={inputCustomerSearch}
+                        onChange={handleChangeCustomerSearch}
+                      />
+                      {suggestions.length > 0 && (
+                        <ul className="suggestion-list">
+                          {suggestions.map((customer, index) => (
+                            <li key={index} onClick={() => handleSuggestionClickCustomerSearch(customer)}>
+                              <div>
+                                <strong>{customer.name}</strong>
+                                <span style={{ display: 'block', fontSize: '0.8em', color: '#666' }}>
+                                  {customer.id}
+                                </span>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                    </div>
+                  </div>
+                  <div className="row form-group ml-1">
+                    <div className="col-md-6 mt-3">
+                      <input type="text" placeholder="Tên người nhận" className="form-control" />
+                    </div>
+                    <div className="col-md-6 mt-3">
+                      <input type="text" placeholder="Số điện thoại" className="form-control" />
+                    </div>
+                    <div className="col-md-12 mt-3">
+                      <input type="text" placeholder="Địa chỉ chi tiết (Số nhà,ngõ,đường)" className="form-control" />
+                    </div>
+                    <div className="col-md-12 mt-3">
+                        <input
+                          type="text"
+                          placeholder="Tỉnh/TP - Quận/Huyện"
+                          className="form-control"
+                          value={cityDistrict}
+                          onChange={handleCityDistrictChange}
+                        />
+                        {suggestionsAddress.length > 0 && (
+                          <ul className="suggestions-list">
+                            {suggestionsAddress.map((suggestion, index) => (
+                              <li key={index}>{suggestion}</li> // Adjust based on your data structure
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <div className="col-md-12 mt-3">
+                        <input
+                          type="text"
+                          placeholder="Phường - Xã"
+                          className="form-control"
+                          value={ward}
+                          onChange={handleWardChange}
+                        />
+                      </div>
+                  </div>
+
+
+
+                  <div className="col-md-12 btn-pay">
+                    <Button className="btn-blue btn-big btn-lg full">Thanh toán</Button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+
         </div>
       </div>
+
+      <footer className="d-flex align-items-center footer-sale-box">
+        <div className="container-fluid w-100">
+          <div className="row d-flex align-items-center w-100">
+
+            <FormControl className="ml-3">
+              <RadioGroup
+                row
+                value={formOfPurchase}
+                onChange={handleChangeFormOfPurchase}
+                aria-labelledby="demo-row-radio-buttons-group-label"
+                name="row-radio-buttons-group"
+              >
+                <FormControlLabel value="sellquickly" control={<Radio />} label="Bán nhanh" />
+                <FormControlLabel value="selldelivery" control={<Radio />} label="Bán giao hàng" />
+              </RadioGroup>
+            </FormControl>
+
+          </div>
+        </div>
+      </footer>
     </>
   );
 };
