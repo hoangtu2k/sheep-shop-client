@@ -695,3 +695,8 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
   .query_search_productdetail-sale:hover{
     background: #9bc8de69 !important;
   }
+
+  .card-infomation {
+    height: 648px;
+    max-height: 648px;
+  }

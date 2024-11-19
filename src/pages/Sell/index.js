@@ -21,6 +21,12 @@ import "../../assets/css/product.css";
 import { AuthContext } from "../../auth/AuthProvider";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+
 const Sell = () => {
   const context = useContext(MyContext);
   const { logout } = useContext(AuthContext);
@@ -360,11 +366,11 @@ const Sell = () => {
       document.body.classList.remove("dark");
       document.body.classList.add("light");
       localStorage.setItem("themeMode", "light");
-    } 
+    }
     fetchProductDetails();
     fetchBillTaiQuay();
     context.setisHideSidebarAndHeader(true);
-  }, [context,themeMode]);
+  }, [context, themeMode]);
 
   return (
     <>
@@ -450,9 +456,8 @@ const Sell = () => {
                   {billTaiQuay.map((bill, index) => (
                     <div key={bill.id} className="bill-item">
                       <Button
-                        className={`btn-blue btn-addBill ${
-                          selectedBillId === bill.id ? "selected" : ""
-                        }`}
+                        className={`btn-blue btn-addBill ${selectedBillId === bill.id ? "selected" : ""
+                          }`}
                         onClick={() => handleBillSelect(bill.id)}
                       >
                         Hóa đơn {index + 1}
@@ -479,7 +484,7 @@ const Sell = () => {
               </div>
             )}
 
-            <div className="col-sm-2 d-flex align-items-center justify-content-end part3">            
+            <div className="col-sm-2 d-flex align-items-center justify-content-end part3">
 
               <div className="dropdownWrapper position-relative">
                 <Button
@@ -725,21 +730,57 @@ const Sell = () => {
             </div>
           </div>
           <div className="col-md-4">
-            <div className="card shadow border-0 p-3 mt-4">
-              <div className="table-responsive form-group">
-
-               <form>
-                <h6>Người bán hàng: {userName}</h6>
-                  <input type="text"  placeholder="Tìm khách hàng" />
-                  <label>Tổng tiền hàng</label>
-                  <label>Giảm giá</label>
-                  <label>Khách cần trả</label>
-                  <label>Khách thanh toán</label>
-               </form> 
-                
-
-
-
+            <div className="card card-infomation shadow border-0 p-3 mt-4">
+              <div className="form-group">
+                <div className="row">
+                  <div className="col-md-12 mb-3">
+                    <h6 className="mb-3">Người bán hàng: {userName}</h6>
+                    <input type="text" placeholder="Tìm khách hàng" />
+                  </div>
+                  <div className="col-md-9">
+                    <h6>Tổng tiền hàng</h6>
+                  </div>
+                  <div className="col-md-3">
+                    <label>100.000.000</label>
+                  </div>
+                  <div className="col-md-9">
+                    <h6>Giảm giá</h6>
+                  </div>
+                  <div className="col-md-3">
+                    <label>1000</label>
+                  </div>
+                  <div className="col-md-9">
+                    <h6>Khách cần trả</h6>
+                  </div>
+                  <div className="col-md-3">
+                    <label>1000000</label>
+                  </div>
+                  <div className="col-md-9">
+                    <h6>Khách thanh toán</h6>
+                  </div>
+                  <div className="col-md-3">
+                    <label>1000000</label>
+                  </div>
+                  <div className="col-md-12">
+                    <FormControl>
+                      <RadioGroup
+                        row
+                        defaultValue={1}
+                        aria-labelledby="demo-row-radio-buttons-group-label"
+                        name="row-radio-buttons-group"
+                      >
+                        <FormControlLabel value="1" control={<Radio />} label="Tiền mặt" />
+                        <FormControlLabel value="2" control={<Radio />} label="Chuyển khoản" />
+                        <FormControlLabel value="3" control={<Radio />} label="Ví" />
+                      </RadioGroup>
+                    </FormControl>
+                  </div>
+ 
+                  <div className="col-md-12">
+                    <Button className="btn-blue btn-big btn-lg full mt-3">Thanh toán</Button>
+                  </div>
+                </div>
+  
               </div>
             </div>
           </div>
