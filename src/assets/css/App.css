@@ -665,8 +665,8 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
   }
   
   .card-sale {
-    height: 522px !important;
-    max-height: 522px;
+    height: 425px !important;
+    max-height: 425px;
     background-color: #ebe9e9 !important;
     margin: 20px 0px !important; 
   }

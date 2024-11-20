@@ -435,30 +435,67 @@ const Sell = () => {
   };
 
   /////////////////////////////////////////////////////////////////////////////
-  const [cityDistrict, setCityDistrict] = useState('');
-  const [ward, setWard] = useState('');
-  const [suggestionsAddress, setSuggestionsAddress] = useState([]);
+  const [listTinh, setListTinh] = useState([]);
+  const [listHuyen, setListHuyen] = useState([]);
+  const [listXa, setListXa] = useState([]);
+  const [tinh, setTinh] = useState(''); // Không đặt giá trị mặc định
+  const [huyen, setHuyen] = useState(''); // Không đặt giá trị mặc định
 
-  const handleCityDistrictChange = async (e) => {
-    const value = e.target.value;
-    setCityDistrict(value);
-
-    if (value.length > 2) {
+  useEffect(() => {
+    // Lấy danh sách tỉnh
+    const fetchTinh = async () => {
       try {
-        const response = await axios.get(`YOUR_API_URL?query=${value}`);
-        setSuggestionsAddress(response.data);
+        const response = await axios.get('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+          headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
+        });
+        setListTinh(response.data.data);
       } catch (error) {
-        console.error('Error fetching address:', error);
+        console.error('Error fetching provinces:', error);
       }
-    } else {
-      setSuggestionsAddress([]);
-    }
-  };
+    };
+    fetchTinh();
+  }, []);
 
-  const handleWardChange = (e) => {
-    setWard(e.target.value);
-  };
+  useEffect(() => {
+    // Lấy danh sách huyện khi tỉnh thay đổi
+    const fetchHuyen = async () => {
+      if (tinh) { // Chỉ gọi API nếu tỉnh đã được chọn
+        try {
+          const response = await axios.get(`https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${tinh}`, {
+            headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
+          });
+          setListHuyen(response.data.data);
+          setHuyen(''); // Reset huyện khi tỉnh thay đổi
+          setListXa([]); // Reset xã khi tỉnh thay đổi
+        } catch (error) {
+          console.error('Error fetching districts:', error);
+        }
+      }
+    };
 
+    fetchHuyen();
+  }, [tinh]);
+
+  useEffect(() => {
+    // Lấy danh sách xã khi huyện thay đổi
+    const fetchXa = async () => {
+      if (huyen) { // Chỉ gọi API nếu huyện đã được chọn
+        try {
+          const response = await axios.get(`https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${huyen}`, {
+            headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
+          });
+          setListXa(response.data.data);
+        } catch (error) {
+          console.error('Error fetching wards:', error);
+        }
+      } else {
+        setListXa([]); // Reset xã nếu không chọn huyện
+      }
+    };
+
+    fetchXa();
+  }, [huyen]);
+  ////////////////////////////////////////////////////////////////////////////
   // After mapping, display total amount
   const totalAmount = invoiceDetails.reduce((acc, detail) => {
     return acc + (detail.unitPrice * detail.quantity);
@@ -467,7 +504,7 @@ const Sell = () => {
 
   const handleSellquickly = async (selectedBillId) => {
 
-    // Kiểm tra nếu chỉ còn một hóa đơn
+    // Kiểm tra nếu không có sản phẩm
     if (invoiceDetails.length === 0) {
       Swal.fire({
         icon: 'warning',
@@ -538,7 +575,74 @@ const Sell = () => {
   };
 
   const handleSelldelivery = async (selectedBillId) => {
+    // Kiểm tra nếu không có sản phẩm
+    if (invoiceDetails.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Cảnh báo',
+        text: 'Không thể thanh toán. Phải có ít nhất một sản phẩm trong giỏ hàng.',
+        confirmButtonText: 'OK'
+      });
+      return; // Stop execution
+    }
 
+    // Step 1: Ask for confirmation before proceeding with the payment
+    const confirmPayment = await Swal.fire({
+      title: 'Xác nhận thanh toán',
+      text: "Bạn có chắc chắn muốn thanh toán cho hóa đơn này không?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Thanh toán',
+      cancelButtonText: 'Hủy'
+    });
+
+    // If the user cancels, stop the function
+    if (!confirmPayment.isConfirmed) {
+      return;
+    }
+
+    try {
+      // Step 2: Prepare data for payment
+      const payBillData = {
+        salesChannel: formOfPurchase,
+        totalAmount: totalAmount,
+        formOfPayment: paymentMethod,
+        buyerName: inputCustomerSearch || "Khách vãng lai",
+        customerId: selectedCustomerId,
+        payer: userName,
+        note: note
+      };
+
+      // Step 3: Update the bill with payment data
+      await axios.put(`/sale/bill/${selectedBillId}`, payBillData);
+
+      // Step 4: Create a new bill
+      const newBillResponse = await axios.post("/sale/bill", {
+        userId: userId, // Assuming you have userId available
+        createName: userName // Assuming you have userName available
+      });
+
+      // Select the newly created bill
+      if (newBillResponse.data && newBillResponse.data.id) {
+        handleBillSelect(newBillResponse.data.id); // Select the new bill
+      }
+
+      // Refresh the data
+      resetFormFields();
+      fetchBillTaiQuay();
+      fetchProductDetails();
+    } catch (error) {
+      console.error(
+        "Error updating bill tai quay:",
+        error.response?.data || error.message
+      );
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Có lỗi xảy ra khi thanh toán. Vui lòng thử lại.',
+        confirmButtonText: 'OK'
+      });
+    }
   }
 
   useEffect(() => {
@@ -909,17 +1013,49 @@ const Sell = () => {
                 </table>
               </div>
             </div>
-            <div className="card border-0 p-2 mt-3">
-              <div className="table-responsive">
-                <div className="form-group">
-                  <input 
-                  value={note} 
-                  onChange={(e) => setNote(e.target.value)}
-                  type="text" 
-                  placeholder="Ghi chú đơn hàng" 
-                  />
+            <div className="card border-0 p-2">
+            
+                <div className="row p-2">
+                  <div className="col-md-7">
+                    <div className="form-group mt-3 ">
+                      <input
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        type="text"
+                        placeholder="Ghi chú đơn hàng"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-5">
+                    <div className="row">
+                      <div className="col-md-8">
+                        <h6>Tổng tiền hàng</h6>
+                      </div>
+                      <div className="col-md-4">
+                        <label>{formatPrice(totalAmount)}</label>
+                      </div>
+                      <div className="col-md-8">
+                        <h6>Giảm giá</h6>
+                      </div>
+                      <div className="col-md-4">
+                        <label>0</label>
+                      </div>
+                      <div className="col-md-8">
+                        <h6>Phí ship</h6>
+                      </div>
+                      <div className="col-md-4">
+                        <label>0</label>
+                      </div>
+                      <div className="col-md-8">
+                        <h6>Khách cần trả</h6>
+                      </div>
+                      <div className="col-md-4">
+                        <label>{formatPrice(totalAmount)}</label>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+           
             </div>
           </div>
 
@@ -956,24 +1092,6 @@ const Sell = () => {
                       )}
 
                     </div>
-                  </div>
-                  <div className="col-md-9">
-                    <h6>Tổng tiền hàng</h6>
-                  </div>
-                  <div className="col-md-3">
-                    <label>{formatPrice(totalAmount)}</label>
-                  </div>
-                  <div className="col-md-9">
-                    <h6>Giảm giá</h6>
-                  </div>
-                  <div className="col-md-3">
-                    <label>0</label>
-                  </div>
-                  <div className="col-md-9">
-                    <h6>Khách cần trả</h6>
-                  </div>
-                  <div className="col-md-3">
-                    <label>{formatPrice(totalAmount)}</label>
                   </div>
 
                   <div className="col-md-12">
@@ -1067,35 +1185,56 @@ const Sell = () => {
                     <div className="col-md-12 mt-3">
                       <input type="text" placeholder="Địa chỉ chi tiết (Số nhà,ngõ,đường)" className="form-control" />
                     </div>
+
                     <div className="col-md-12 mt-3">
-                      <input
-                        type="text"
-                        placeholder="Tỉnh/TP - Quận/Huyện"
+                      <select
                         className="form-control"
-                        value={cityDistrict}
-                        onChange={handleCityDistrictChange}
-                      />
-                      {suggestionsAddress.length > 0 && (
-                        <ul className="suggestions-list">
-                          {suggestionsAddress.map((suggestion, index) => (
-                            <li key={index}>{suggestion}</li> // Adjust based on your data structure
-                          ))}
-                        </ul>
-                      )}
+                        value={tinh}
+                        onChange={(e) => setTinh(e.target.value)}
+                      >
+                        <option value="">Chọn Tỉnh/Thành phố</option>
+                        {listTinh.map((item) => (
+                          <option key={item.ProvinceID} value={item.ProvinceID}>
+                            {item.ProvinceName}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+
                     <div className="col-md-12 mt-3">
-                      <input
-                        type="text"
-                        placeholder="Phường - Xã"
+                      <select
                         className="form-control"
-                        value={ward}
-                        onChange={handleWardChange}
-                      />
+                        value={huyen}
+                        onChange={(e) => setHuyen(e.target.value)}
+                        disabled={!tinh} // Khóa nếu chưa chọn tỉnh
+                      >
+                        <option value="">Chọn Quận/Huyện</option>
+                        {listHuyen.map((item) => (
+                          <option key={item.DistrictID} value={item.DistrictID}>
+                            {item.DistrictName}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+
+                    <div className="col-md-12 mt-3">
+                      <select
+                        className="form-control"
+                        disabled={!huyen} // Khóa nếu chưa chọn huyện
+                      >
+                        <option value="">Chọn Phường/Xã</option>
+                        {listXa.map((item) => (
+                          <option key={item.WardID} value={item.WardID}>
+                            {item.WardName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                   </div>
 
                   <div className="col-md-12 btn-pay">
-                    <Button className="btn-blue btn-big btn-lg full" onClick={() => handleSelldelivery()}>Thanh toán</Button>
+                    <Button className="btn-blue btn-big btn-lg full" onClick={() => handleSelldelivery(selectedBillId)}>Thanh toán</Button>
                   </div>
                 </div>
 
