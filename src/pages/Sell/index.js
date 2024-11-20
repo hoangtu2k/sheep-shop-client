@@ -12,7 +12,7 @@ import { Divider } from "@mui/material";
 import { MyContext } from "../../App";
 
 import "../../assets/css/product.css";
-
+import Swal from "sweetalert2";
 import { AuthContext } from "../../auth/AuthProvider";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Menu, MenuItem, ListItemIcon, FormControl, FormControlLabel, Radio, RadioGroup, TextField, Button } from '@mui/material';
@@ -79,17 +79,23 @@ const Sell = () => {
 
   const fetchBillTaiQuay = async () => {
     try {
-      const response = await axios.get("/sale/bill"); // Adjust the URL as needed
+      const response = await axios.get("/sale/bill");
       setBillTaiQuay(response.data);
-      // Set default selected bill to the first one if available
-      if (response.data.length > 0) {
-        setSelectedBillId(response.data[0].id); // Assuming each bill has a unique 'id'
-      }
+      return response.data; // Return the fetched bills
     } catch (error) {
-      console.error(
-        "Error fetching bill tai quay: ",
-        error.response?.data || error.message
-      );
+      console.error("Error fetching bill tai quay: ", error.response?.data || error.message);
+      return []; // Return an empty array on error
+    }
+  };
+
+  const fetchData = async () => {
+    await fetchProductDetails();
+    const bills = await fetchBillTaiQuay();
+
+    // Automatically select the first bill if it exists
+    if (bills.length > 0) {
+      setSelectedBillId(bills[0].id);
+      handleBillSelect(bills[0].id);
     }
   };
 
@@ -162,32 +168,57 @@ const Sell = () => {
   const handleBillDelete = async (id) => {
     // Kiểm tra nếu chỉ còn một hóa đơn
     if (billTaiQuay.length <= 1) {
-      // Hiển thị thông báo cho người dùng
-      alert(
-        "Không thể xóa hóa đơn. Phải có ít nhất một hóa đơn trong danh sách."
-      );
-      return; // Ngừng thực hiện hàm
+      Swal.fire({
+        icon: 'warning',
+        title: 'Cảnh báo',
+        text: 'Không thể xóa hóa đơn. Phải có ít nhất một hóa đơn trong danh sách.',
+        confirmButtonText: 'OK'
+      });
+      return; // Stop execution
+    }
+
+    const confirmDelete = await Swal.fire({
+      title: 'Xác nhận xóa',
+      text: "Bạn có chắc chắn muốn xóa hóa đơn này?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy'
+    });
+
+    if (!confirmDelete.isConfirmed) {
+      return; // Stop execution
     }
 
     try {
+      const invoiceDetailsResponse = await axios.get(`/sale/invoice-details/bill/${id}`);
+      const invoiceDetails = invoiceDetailsResponse.data;
+      for (let item of invoiceDetails) {
+        const productDetailId = item.productDetailId;
+        const quantity = item.quantity;
+        await axios.put(
+          `/admin/productdetail/delete-productdetail-update-quantity/${productDetailId}`,
+          {
+            quantity: quantity,
+          }
+        );
+      }
+
       // Gọi API để xóa hóa đơn
       const response = await axios.delete(`/sale/bill/${id}`);
 
-      // Kiểm tra mã trạng thái của phản hồi
       if (response.status === 204) {
-        // Trả về 204 No Content khi xóa thành công
-        // Cập nhật trạng thái nếu xóa thành công
         setBillTaiQuay((prevBills) =>
           prevBills.filter((bill) => bill.id !== id)
         );
         handleBillSelect(selectedBillId);
+        fetchData();
       } else {
         throw new Error("Failed to delete the bill");
       }
     } catch (error) {
       console.error("Error deleting bill:", error);
-      // Hiển thị thông báo lỗi cho người dùng nếu cần
-      // Ví dụ: setError('Không thể xóa hóa đơn. Vui lòng thử lại.');
+      console.log('Không thể xóa hóa đơn. Vui lòng thử lại.');
     }
   };
 
@@ -363,8 +394,6 @@ const Sell = () => {
   }, [user]);
 
   useEffect(() => {
-    console.log("id: " + selectedBillId);
-
     if (themeMode === true) {
       document.body.classList.remove("dark");
       document.body.classList.add("light");
@@ -372,6 +401,7 @@ const Sell = () => {
     }
     fetchProductDetails();
     fetchBillTaiQuay();
+    fetchData();
     context.setisHideSidebarAndHeader(true);
   }, [context, themeMode]);
 
@@ -444,29 +474,59 @@ const Sell = () => {
 
 
   const handleSellquickly = async (selectedBillId) => {
+    // Step 1: Ask for confirmation before proceeding with the payment
+    const confirmPayment = await Swal.fire({
+      title: 'Xác nhận thanh toán',
+      text: "Bạn có chắc chắn muốn thanh toán cho hóa đơn này không?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Thanh toán',
+      cancelButtonText: 'Hủy'
+    });
+  
+    // If the user cancels, stop the function
+    if (!confirmPayment.isConfirmed) {
+      return;
+    }
+  
     try {
+      // Step 2: Prepare data for payment
       const payBillData = {
         salesChannel: formOfPurchase,
-        totalAmount : totalAmount,
-        buyerName: inputCustomerSearch === null ? "Khách vãng lại" : inputCustomerSearch
+        totalAmount: totalAmount,
+        buyerName: inputCustomerSearch || "Khách vãng lai" // Use inputCustomerSearch or default
       };
+  
+      // Step 3: Update the bill with payment data
       await axios.put(`/sale/bill/${selectedBillId}`, payBillData);
-
-
-      if (billTaiQuay.length > 0) {
-        const firstBillId = billTaiQuay[0].id; // Get the ID of the first bill
-        handleBillSelect(firstBillId); // Select the first bill
+  
+      // Step 4: Create a new bill
+      const newBillResponse = await axios.post("/sale/bill", {
+        userId: userId, // Assuming you have userId available
+        createName: userName // Assuming you have userName available
+      });
+  
+      // Select the newly created bill
+      if (newBillResponse.data && newBillResponse.data.id) {
+        handleBillSelect(newBillResponse.data.id); // Select the new bill
       }
-
+  
+      // Refresh the data
       fetchBillTaiQuay();
       fetchProductDetails();
     } catch (error) {
       console.error(
-        "Error update bill tai quay:",
+        "Error updating bill tai quay:",
         error.response?.data || error.message
       );
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Có lỗi xảy ra khi thanh toán. Vui lòng thử lại.',
+        confirmButtonText: 'OK'
+      });
     }
-  }
+  };
 
   const handleSelldelivery = async () => {
 
