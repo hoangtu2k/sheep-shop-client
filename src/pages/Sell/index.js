@@ -44,6 +44,12 @@ const Sell = () => {
   const [cart, setCart] = useState([]);
   const [customers, setCustomers] = useState([]);
 
+  const [paymentMethod, setPaymentMethod] = useState('0');
+  const [formOfPurchase, setFormOfPurchase] = useState("0");
+  const [inputCustomerSearch, setInputCustomerSearch] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null); // State for selected customer ID
+
   const navigate = useNavigate(); // Khai báo hook navigate
 
   const handleLogout = () => {
@@ -421,19 +427,9 @@ const Sell = () => {
     setQuery("");
   };
 
-  const [paymentMethod, setPaymentMethod] = useState('1');
-  const [formOfPurchase, setFormOfPurchase] = useState("0");
-  const [inputCustomerSearch, setInputCustomerSearch] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [selectedCustomerId, setSelectedCustomerId] = useState(null); // State for selected customer ID
-  const [selectedCustomerName, setSelectedCustomerName] = useState(''); // State for selected customer name
-
   const handleChangeFormOfPurchase = (event) => {
     setFormOfPurchase(event.target.value);
   };
-
-  // Example customer list with IDs
-
 
   const handleChangeCustomerSearch = (event) => {
     const value = event.target.value;
@@ -452,7 +448,6 @@ const Sell = () => {
   const handleSuggestionClickCustomerSearch = (customer) => {
     setInputCustomerSearch(customer.name);
     setSelectedCustomerId(customer.id); // Set selected customer ID
-    setSelectedCustomerName(customer.name); // Set selected customer name
     setSuggestions([]); // Clear suggestions after selection
   };
 
@@ -508,9 +503,9 @@ const Sell = () => {
       const payBillData = {
         salesChannel: formOfPurchase,
         totalAmount: totalAmount,
+        formOfPayment: paymentMethod,
         buyerName: inputCustomerSearch || "Khách vãng lai", // Use inputCustomerSearch or default
         customerId: selectedCustomerId, // Use selected customer ID
-        customerName: selectedCustomerName ,  
         payer: userName
       };
 
@@ -971,27 +966,27 @@ const Sell = () => {
                         aria-labelledby="demo-row-radio-buttons-group-label"
                         name="row-radio-buttons-group"
                       >
-                        <FormControlLabel value="1" control={<Radio />} label="Tiền mặt" />
-                        <FormControlLabel value="2" control={<Radio />} label="Chuyển khoản" />
-                        <FormControlLabel value="3" control={<Radio />} label="Ví" />
+                        <FormControlLabel value="0" control={<Radio />} label="Tiền mặt" />
+                        <FormControlLabel value="1" control={<Radio />} label="Chuyển khoản" />
+                        <FormControlLabel value="2" control={<Radio />} label="Ví" />
                       </RadioGroup>
                     </FormControl>
                   </div>
 
                   <div className="col-md-12">
-                    {paymentMethod === '1' && (
+                    {paymentMethod === '0' && (
                       <div className="form-of-cash">
 
                       </div>
                     )}
-                    {(paymentMethod === '2') && (
+                    {(paymentMethod === '1') && (
                       <div className="form-of-transfer">
                         <Button className="btn-big btn-lg full" variant="outlined">
                           Thêm tài khoản ngân hàng
                         </Button>
                       </div>
                     )}
-                    {(paymentMethod === '3') && (
+                    {(paymentMethod === '2') && (
                       <div className="form-of-wallet">
                         <Button className="btn-big btn-lg full" variant="outlined">
                           Thêm tài khoản ví
