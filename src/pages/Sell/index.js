@@ -44,6 +44,7 @@ const Sell = () => {
   const [cart, setCart] = useState([]);
   const [customers, setCustomers] = useState([]);
 
+  const [note, setNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('0');
   const [formOfPurchase, setFormOfPurchase] = useState("0");
   const [inputCustomerSearch, setInputCustomerSearch] = useState('');
@@ -403,28 +404,10 @@ const Sell = () => {
     }
   };
 
-  useEffect(() => {
-    if (user && user.image) {
-      setUserImage(user?.image); // Giả sử user.image chứa link ảnh
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (themeMode === true) {
-      document.body.classList.remove("dark");
-      document.body.classList.add("light");
-      localStorage.setItem("themeMode", "light");
-    }
-    fetchProductDetails();
-    fetchBillTaiQuay();
-    fetchData();
-    fetchCustomers();
-    context.setisHideSidebarAndHeader(true);
-  }, [context, themeMode]);
-
   const resetFormFields = () => {
     setInputCustomerSearch("");
     setQuery("");
+    setNote("");
   };
 
   const handleChangeFormOfPurchase = (event) => {
@@ -483,6 +466,18 @@ const Sell = () => {
 
 
   const handleSellquickly = async (selectedBillId) => {
+
+    // Kiểm tra nếu chỉ còn một hóa đơn
+    if (invoiceDetails.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Cảnh báo',
+        text: 'Không thể thanh toán. Phải có ít nhất một sản phẩm trong giỏ hàng.',
+        confirmButtonText: 'OK'
+      });
+      return; // Stop execution
+    }
+
     // Step 1: Ask for confirmation before proceeding with the payment
     const confirmPayment = await Swal.fire({
       title: 'Xác nhận thanh toán',
@@ -506,7 +501,8 @@ const Sell = () => {
         formOfPayment: paymentMethod,
         buyerName: inputCustomerSearch || "Khách vãng lai", // Use inputCustomerSearch or default
         customerId: selectedCustomerId, // Use selected customer ID
-        payer: userName
+        payer: userName,
+        note: note
       };
 
       // Step 3: Update the bill with payment data
@@ -545,6 +541,24 @@ const Sell = () => {
 
   }
 
+  useEffect(() => {
+    if (user && user.image) {
+      setUserImage(user?.image); // Giả sử user.image chứa link ảnh
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (themeMode === true) {
+      document.body.classList.remove("dark");
+      document.body.classList.add("light");
+      localStorage.setItem("themeMode", "light");
+    }
+    fetchProductDetails();
+    fetchBillTaiQuay();
+    fetchData();
+    fetchCustomers();
+    context.setisHideSidebarAndHeader(true);
+  }, [context, themeMode]);
 
   return (
     <>
@@ -898,7 +912,12 @@ const Sell = () => {
             <div className="card border-0 p-2 mt-3">
               <div className="table-responsive">
                 <div className="form-group">
-                  <input type="text" placeholder="Ghi chú đơn hàng" />
+                  <input 
+                  value={note} 
+                  onChange={(e) => setNote(e.target.value)}
+                  type="text" 
+                  placeholder="Ghi chú đơn hàng" 
+                  />
                 </div>
               </div>
             </div>
