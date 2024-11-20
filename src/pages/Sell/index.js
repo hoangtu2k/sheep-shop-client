@@ -42,6 +42,7 @@ const Sell = () => {
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [cart, setCart] = useState([]);
+  const [customers, setCustomers] = useState([]);
 
   const navigate = useNavigate(); // Khai báo hook navigate
 
@@ -96,6 +97,15 @@ const Sell = () => {
     if (bills.length > 0) {
       setSelectedBillId(bills[0].id);
       handleBillSelect(bills[0].id);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.post('/admin/customers'); // Adjust the API endpoint as needed
+      setCustomers(response.data); // Assuming response.data contains the customer array
+    } catch (error) {
+      console.error("Error fetching customers:", error);
     }
   };
 
@@ -402,31 +412,33 @@ const Sell = () => {
     fetchProductDetails();
     fetchBillTaiQuay();
     fetchData();
+    fetchCustomers();
     context.setisHideSidebarAndHeader(true);
   }, [context, themeMode]);
+
+  const resetFormFields = () => {
+    setInputCustomerSearch("");
+    setQuery("");
+  };
 
   const [paymentMethod, setPaymentMethod] = useState('1');
   const [formOfPurchase, setFormOfPurchase] = useState("0");
   const [inputCustomerSearch, setInputCustomerSearch] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null); // State for selected customer ID
+  const [selectedCustomerName, setSelectedCustomerName] = useState(''); // State for selected customer name
 
   const handleChangeFormOfPurchase = (event) => {
     setFormOfPurchase(event.target.value);
   };
 
   // Example customer list with IDs
-  const customers = [
-    { id: 'KH001', name: 'Nguyễn Văn A' },
-    { id: 'KH002', name: 'Trần Thị B' },
-    { id: 'KH003', name: 'Lê Văn C' },
-    { id: 'KH004', name: 'Phạm Thị D' }
-  ];
+
 
   const handleChangeCustomerSearch = (event) => {
     const value = event.target.value;
     setInputCustomerSearch(value);
 
-    // Filter suggestions based on input
     if (value) {
       const filteredSuggestions = customers.filter(customer =>
         customer.name.toLowerCase().includes(value.toLowerCase())
@@ -439,6 +451,8 @@ const Sell = () => {
 
   const handleSuggestionClickCustomerSearch = (customer) => {
     setInputCustomerSearch(customer.name);
+    setSelectedCustomerId(customer.id); // Set selected customer ID
+    setSelectedCustomerName(customer.name); // Set selected customer name
     setSuggestions([]); // Clear suggestions after selection
   };
 
@@ -483,35 +497,39 @@ const Sell = () => {
       confirmButtonText: 'Thanh toán',
       cancelButtonText: 'Hủy'
     });
-  
+
     // If the user cancels, stop the function
     if (!confirmPayment.isConfirmed) {
       return;
     }
-  
+
     try {
       // Step 2: Prepare data for payment
       const payBillData = {
         salesChannel: formOfPurchase,
         totalAmount: totalAmount,
-        buyerName: inputCustomerSearch || "Khách vãng lai" // Use inputCustomerSearch or default
+        buyerName: inputCustomerSearch || "Khách vãng lai", // Use inputCustomerSearch or default
+        customerId: selectedCustomerId, // Use selected customer ID
+        customerName: selectedCustomerName ,  
+        payer: userName
       };
-  
+
       // Step 3: Update the bill with payment data
       await axios.put(`/sale/bill/${selectedBillId}`, payBillData);
-  
+
       // Step 4: Create a new bill
       const newBillResponse = await axios.post("/sale/bill", {
         userId: userId, // Assuming you have userId available
         createName: userName // Assuming you have userName available
       });
-  
+
       // Select the newly created bill
       if (newBillResponse.data && newBillResponse.data.id) {
         handleBillSelect(newBillResponse.data.id); // Select the new bill
       }
-  
+
       // Refresh the data
+      resetFormFields();
       fetchBillTaiQuay();
       fetchProductDetails();
     } catch (error) {
@@ -528,7 +546,7 @@ const Sell = () => {
     }
   };
 
-  const handleSelldelivery = async () => {
+  const handleSelldelivery = async (selectedBillId) => {
 
   }
 
@@ -915,7 +933,7 @@ const Sell = () => {
                               <div>
                                 <strong>{customer.name}</strong>
                                 <span style={{ display: 'block', fontSize: '0.8em', color: '#666' }}>
-                                  {customer.id}
+                                  {customer.code}
                                 </span>
                               </div>
                             </li>
@@ -983,8 +1001,11 @@ const Sell = () => {
                   </div>
 
                   <div className="col-md-12 btn-pay">
-                    <Button className="btn-blue btn-big btn-lg full" onClick={() => handleSellquickly(selectedBillId)}>Thanh toán</Button>
+                    <Button className="btn-blue btn-big btn-lg full" onClick={() => handleSellquickly(selectedBillId)}>
+                      Thanh toán
+                    </Button>
                   </div>
+
                 </div>
 
               </div>
