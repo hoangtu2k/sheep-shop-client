@@ -17,13 +17,13 @@ import { AuthContext } from "../../auth/AuthProvider";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Menu, MenuItem, ListItemIcon, FormControl, FormControlLabel, Radio, RadioGroup, TextField, Button } from '@mui/material';
 
-
 const Sell = () => {
+  const navigate = useNavigate();
   const context = useContext(MyContext);
+  const { user } = useContext(AuthContext);
   const { logout } = useContext(AuthContext);
   const [themeMode] = useState(true);
 
-  const { user } = useContext(AuthContext); // Lấy thông tin người dùng từ contex
   const userId = user?.id;
   const userName = user?.name || "Tên không xác định";
   const roleName = user?.roleName || "Chức vụ không xác định";
@@ -52,8 +52,6 @@ const Sell = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState(null); // State for selected customer ID
   const [selectedCustomerName, setSelectedCustomerName] = useState('');
   const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
-
-  const navigate = useNavigate(); // Khai báo hook navigate
 
   const handleLogout = () => {
     logout(); // Gọi hàm logout
@@ -135,8 +133,6 @@ const Sell = () => {
   const handleChangeFormOfPayment = (event) => {
     setPaymentMethod(event.target.value);
   };
-
-  //////////////////////////////////////////////////////////////////////////////
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN").format(price);
@@ -442,76 +438,14 @@ const Sell = () => {
   const handleClearSearchCustomer = () => {
     setInputCustomerSearch('');
     setSelectedCustomerId(null); // Clear selected customer ID
-    setSuggestions([]); // Optionally clear suggestions as well
+    setSelectedCustomerName('');
+    setSelectedCustomerPhone('');
+    setSuggestions([]);
   };
 
-  /////////////////////////////////////////////////////////////////////////////
-  const [listTinh, setListTinh] = useState([]);
-  const [listHuyen, setListHuyen] = useState([]);
-  const [listXa, setListXa] = useState([]);
-  const [tinh, setTinh] = useState(''); // Không đặt giá trị mặc định
-  const [huyen, setHuyen] = useState(''); // Không đặt giá trị mặc định
-
-  useEffect(() => {
-    // Lấy danh sách tỉnh
-    const fetchTinh = async () => {
-      try {
-        const response = await axios.get('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
-          headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
-        });
-        setListTinh(response.data.data);
-      } catch (error) {
-        console.error('Error fetching provinces:', error);
-      }
-    };
-    fetchTinh();
-  }, []);
-
-  useEffect(() => {
-    // Lấy danh sách huyện khi tỉnh thay đổi
-    const fetchHuyen = async () => {
-      if (tinh) { // Chỉ gọi API nếu tỉnh đã được chọn
-        try {
-          const response = await axios.get(`https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${tinh}`, {
-            headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
-          });
-          setListHuyen(response.data.data);
-          setHuyen(''); // Reset huyện khi tỉnh thay đổi
-          setListXa([]); // Reset xã khi tỉnh thay đổi
-        } catch (error) {
-          console.error('Error fetching districts:', error);
-        }
-      }
-    };
-
-    fetchHuyen();
-  }, [tinh]);
-
-  useEffect(() => {
-    // Lấy danh sách xã khi huyện thay đổi
-    const fetchXa = async () => {
-      if (huyen) { // Chỉ gọi API nếu huyện đã được chọn
-        try {
-          const response = await axios.get(`https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${huyen}`, {
-            headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
-          });
-          setListXa(response.data.data);
-        } catch (error) {
-          console.error('Error fetching wards:', error);
-        }
-      } else {
-        setListXa([]); // Reset xã nếu không chọn huyện
-      }
-    };
-
-    fetchXa();
-  }, [huyen]);
-  ////////////////////////////////////////////////////////////////////////////
-  // After mapping, display total amount
   const totalAmount = invoiceDetails.reduce((acc, detail) => {
     return acc + (detail.unitPrice * detail.quantity);
   }, 0);
-
 
   const handleSellquickly = async (selectedBillId) => {
 
@@ -655,6 +589,66 @@ const Sell = () => {
       });
     }
   }
+
+  /////////////////////////////////////////////////////////////////////////////
+  const [listTinh, setListTinh] = useState([]);
+  const [listHuyen, setListHuyen] = useState([]);
+  const [listXa, setListXa] = useState([]);
+  const [tinh, setTinh] = useState('');
+  const [huyen, setHuyen] = useState('');
+  useEffect(() => {
+    // Lấy danh sách tỉnh
+    const fetchTinh = async () => {
+      try {
+        const response = await axios.get('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+          headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
+        });
+        setListTinh(response.data.data);
+      } catch (error) {
+        console.error('Error fetching provinces:', error);
+      }
+    };
+    fetchTinh();
+  }, []);
+  useEffect(() => {
+    // Lấy danh sách huyện khi tỉnh thay đổi
+    const fetchHuyen = async () => {
+      if (tinh) { // Chỉ gọi API nếu tỉnh đã được chọn
+        try {
+          const response = await axios.get(`https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${tinh}`, {
+            headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
+          });
+          setListHuyen(response.data.data);
+          setHuyen(''); // Reset huyện khi tỉnh thay đổi
+          setListXa([]); // Reset xã khi tỉnh thay đổi
+        } catch (error) {
+          console.error('Error fetching districts:', error);
+        }
+      }
+    };
+
+    fetchHuyen();
+  }, [tinh]);
+  useEffect(() => {
+    // Lấy danh sách xã khi huyện thay đổi
+    const fetchXa = async () => {
+      if (huyen) { // Chỉ gọi API nếu huyện đã được chọn
+        try {
+          const response = await axios.get(`https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${huyen}`, {
+            headers: { 'token': '4d12e88b-1cb1-11ef-af94-de306bc60dfa' },
+          });
+          setListXa(response.data.data);
+        } catch (error) {
+          console.error('Error fetching wards:', error);
+        }
+      } else {
+        setListXa([]); // Reset xã nếu không chọn huyện
+      }
+    };
+
+    fetchXa();
+  }, [huyen]);
+  ////////////////////////////////////////////////////////////////////////////
 
   useEffect(() => {
     if (user && user.image) {
@@ -1182,7 +1176,7 @@ const Sell = () => {
                           ))}
                         </ul>
                       )}
-                    <CiCircleRemove className="sales-search-btn" onClick={handleClearSearchCustomer} />
+                      <CiCircleRemove className="sales-search-btn" onClick={handleClearSearchCustomer} />
 
                     </div>
                   </div>
