@@ -50,6 +50,8 @@ const Sell = () => {
   const [inputCustomerSearch, setInputCustomerSearch] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null); // State for selected customer ID
+  const [selectedCustomerName, setSelectedCustomerName] = useState('');
+  const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
 
   const navigate = useNavigate(); // Khai báo hook navigate
 
@@ -420,7 +422,8 @@ const Sell = () => {
 
     if (value) {
       const filteredSuggestions = customers.filter(customer =>
-        customer.name.toLowerCase().includes(value.toLowerCase())
+        customer.name.toLowerCase().includes(value.toLowerCase()) ||
+        customer.phone.includes(value) // Check for phone number as well
       );
       setSuggestions(filteredSuggestions);
     } else {
@@ -430,8 +433,16 @@ const Sell = () => {
 
   const handleSuggestionClickCustomerSearch = (customer) => {
     setInputCustomerSearch(customer.name);
-    setSelectedCustomerId(customer.id); // Set selected customer ID
+    setSelectedCustomerId(customer.id);
+    setSelectedCustomerName(customer.name); // Set selected customer name
+    setSelectedCustomerPhone(customer.phone); // Set selected customer phone
     setSuggestions([]); // Clear suggestions after selection
+  };
+
+  const handleClearSearchCustomer = () => {
+    setInputCustomerSearch('');
+    setSelectedCustomerId(null); // Clear selected customer ID
+    setSuggestions([]); // Optionally clear suggestions as well
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -1014,48 +1025,48 @@ const Sell = () => {
               </div>
             </div>
             <div className="card border-0 p-2">
-            
-                <div className="row p-2">
-                  <div className="col-md-7">
-                    <div className="form-group mt-3 ">
-                      <input
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        type="text"
-                        placeholder="Ghi chú đơn hàng"
-                      />
-                    </div>
+
+              <div className="row p-2">
+                <div className="col-md-7">
+                  <div className="form-group mt-3 ">
+                    <input
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      type="text"
+                      placeholder="Ghi chú đơn hàng"
+                    />
                   </div>
-                  <div className="col-md-5">
-                    <div className="row">
-                      <div className="col-md-8">
-                        <h6>Tổng tiền hàng</h6>
-                      </div>
-                      <div className="col-md-4">
-                        <label>{formatPrice(totalAmount)}</label>
-                      </div>
-                      <div className="col-md-8">
-                        <h6>Giảm giá</h6>
-                      </div>
-                      <div className="col-md-4">
-                        <label>0</label>
-                      </div>
-                      <div className="col-md-8">
-                        <h6>Phí ship</h6>
-                      </div>
-                      <div className="col-md-4">
-                        <label>0</label>
-                      </div>
-                      <div className="col-md-8">
-                        <h6>Khách cần trả</h6>
-                      </div>
-                      <div className="col-md-4">
-                        <label>{formatPrice(totalAmount)}</label>
-                      </div>
+                </div>
+                <div className="col-md-5">
+                  <div className="row">
+                    <div className="col-md-8">
+                      <h6>Tổng tiền hàng</h6>
+                    </div>
+                    <div className="col-md-4">
+                      <label>{formatPrice(totalAmount)}</label>
+                    </div>
+                    <div className="col-md-8">
+                      <h6>Giảm giá</h6>
+                    </div>
+                    <div className="col-md-4">
+                      <label>0</label>
+                    </div>
+                    <div className="col-md-8">
+                      <h6>Phí ship</h6>
+                    </div>
+                    <div className="col-md-4">
+                      <label>0</label>
+                    </div>
+                    <div className="col-md-8">
+                      <h6>Khách cần trả</h6>
+                    </div>
+                    <div className="col-md-4">
+                      <label>{formatPrice(totalAmount)}</label>
                     </div>
                   </div>
                 </div>
-           
+              </div>
+
             </div>
           </div>
 
@@ -1070,7 +1081,7 @@ const Sell = () => {
                     <h6 className="mb-3">Người bán hàng: {userName}</h6>
                     <div className="customer-search">
                       <input
-                        className="form-control"
+                        className="form-control sales-search-input"
                         type="text"
                         placeholder="Tìm khách hàng"
                         value={inputCustomerSearch}
@@ -1083,14 +1094,14 @@ const Sell = () => {
                               <div>
                                 <strong>{customer.name}</strong>
                                 <span style={{ display: 'block', fontSize: '0.8em', color: '#666' }}>
-                                  {customer.code}
+                                  {customer.code} - {customer.phone}
                                 </span>
                               </div>
                             </li>
                           ))}
                         </ul>
                       )}
-
+                      <CiCircleRemove className="sales-search-btn" onClick={handleClearSearchCustomer} />
                     </div>
                   </div>
 
@@ -1146,13 +1157,12 @@ const Sell = () => {
           {(formOfPurchase === '1') && (
             <div className="col-md-4">
               <div className="card card-infomation border-0 p-3 mt-4">
-
                 <div className="row">
                   <div className="col-md-12 mb-3">
                     <h6 className="mb-3">Người bán hàng: {userName}</h6>
                     <div className="customer-search">
                       <input
-                        className="form-control"
+                        className="form-control pr-5"
                         type="text"
                         placeholder="Tìm khách hàng"
                         value={inputCustomerSearch}
@@ -1165,23 +1175,38 @@ const Sell = () => {
                               <div>
                                 <strong>{customer.name}</strong>
                                 <span style={{ display: 'block', fontSize: '0.8em', color: '#666' }}>
-                                  {customer.id}
+                                  {customer.code} - {customer.phone}
                                 </span>
                               </div>
                             </li>
                           ))}
                         </ul>
                       )}
+                    <CiCircleRemove className="sales-search-btn" onClick={handleClearSearchCustomer} />
 
                     </div>
                   </div>
                   <div className="row form-group ml-1">
+
                     <div className="col-md-6 mt-3">
-                      <input type="text" placeholder="Tên người nhận" className="form-control" />
+                      <input
+                        type="text"
+                        placeholder="Tên người nhận"
+                        className="form-control"
+                        value={selectedCustomerName}
+                        onChange={(e) => setSelectedCustomerName(e.target.value)}
+                      />
                     </div>
                     <div className="col-md-6 mt-3">
-                      <input type="text" placeholder="Số điện thoại" className="form-control" />
+                      <input
+                        type="text"
+                        placeholder="Số điện thoại"
+                        className="form-control"
+                        value={selectedCustomerPhone}
+                        onChange={(e) => setSelectedCustomerPhone(e.target.value)}
+                      />
                     </div>
+
                     <div className="col-md-12 mt-3">
                       <input type="text" placeholder="Địa chỉ chi tiết (Số nhà,ngõ,đường)" className="form-control" />
                     </div>
@@ -1200,7 +1225,6 @@ const Sell = () => {
                         ))}
                       </select>
                     </div>
-
                     <div className="col-md-12 mt-3">
                       <select
                         className="form-control"
@@ -1216,7 +1240,6 @@ const Sell = () => {
                         ))}
                       </select>
                     </div>
-
                     <div className="col-md-12 mt-3">
                       <select
                         className="form-control"
@@ -1232,12 +1255,10 @@ const Sell = () => {
                     </div>
 
                   </div>
-
                   <div className="col-md-12 btn-pay">
                     <Button className="btn-blue btn-big btn-lg full" onClick={() => handleSelldelivery(selectedBillId)}>Thanh toán</Button>
                   </div>
                 </div>
-
               </div>
             </div>
           )}

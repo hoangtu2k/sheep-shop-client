@@ -751,5 +751,20 @@ body.dark .imgUploadBox .uploadBox{border: 1px dashed  rgba(255,255,255,0.2);}
     backdrop-filter: blur(5px);}
 
 
+    .row .customer-search {
+      position: relative;
+    }
 
+    .row .customer-search .sales-search-btn{
+      position: absolute;
+      right: 5px;
+      top: 7px;
+      font-size: 24px;
+    }
+
+    .row .customer-search .sales-search-btn:hover{
+      background: #5e5d72;
+      border-radius: 999px;
+      color: #e2e8ed;
+    }
 
