@@ -74,58 +74,6 @@ const Sell = () => {
     setisOpenNotificationsDrop(false);
   };
 
-  const fetchProductDetails = async () => {
-    try {
-      const response = await axios.get("/admin/productdetail");
-      setProductDetails(response.data);
-    } catch (error) {
-      console.error(
-        "Error fetching users: " + (error.response?.data || error.message)
-      );
-    }
-  };
-
-  const fetchBillTaiQuay = async () => {
-    try {
-      const response = await axios.get("/sale/bill");
-      setBillTaiQuay(response.data);
-      return response.data; // Return the fetched bills
-    } catch (error) {
-      console.error("Error fetching bill tai quay: ", error.response?.data || error.message);
-      return []; // Return an empty array on error
-    }
-  };
-
-  const fetchData = async () => {
-    await fetchProductDetails();
-    const bills = await fetchBillTaiQuay();
-
-    // Automatically select the first bill if it exists
-    if (bills.length > 0) {
-      setSelectedBillId(bills[0].id);
-      handleBillSelect(bills[0].id);
-    }
-  };
-
-  const fetchCustomers = async () => {
-    try {
-      const response = await axios.post('/admin/customers'); // Adjust the API endpoint as needed
-      setCustomers(response.data); // Assuming response.data contains the customer array
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-    }
-  };
-
-  const scrollLeft = () => {
-    const billContainer = document.querySelector(".bill-container");
-    billContainer.scrollBy({ left: -200, behavior: "smooth" }); // Cuộn 200px sang trái
-  };
-
-  const scrollRight = () => {
-    const billContainer = document.querySelector(".bill-container");
-    billContainer.scrollBy({ left: 200, behavior: "smooth" }); // Cuộn 200px sang phải
-  };
-
   const handleNavigationAdmin = () => {
     window.location.href = '/admin/dashboard';
   };
@@ -134,15 +82,40 @@ const Sell = () => {
     setPaymentMethod(event.target.value);
   };
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN").format(price);
+  const handleChangeFormOfPurchase = (event) => {
+    setFormOfPurchase(event.target.value);
   };
 
-  const filteredProductDetails = productDetails.filter(
-    (productDetail) =>
-      productDetail.name.toLowerCase().includes(query.toLowerCase()) ||
-      productDetail.code.toLowerCase().includes(query.toLowerCase())
-  );
+  const handleChangeCustomerSearch = (event) => {
+    const value = event.target.value;
+    setInputCustomerSearch(value);
+
+    if (value) {
+      const filteredSuggestions = customers.filter(customer =>
+        customer.name.toLowerCase().includes(value.toLowerCase()) ||
+        customer.phone.includes(value) // Check for phone number as well
+      );
+      setSuggestions(filteredSuggestions);
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSuggestionClickCustomerSearch = (customer) => {
+    setInputCustomerSearch(customer.name);
+    setSelectedCustomerId(customer.id);
+    setSelectedCustomerName(customer.name); // Set selected customer name
+    setSelectedCustomerPhone(customer.phone); // Set selected customer phone
+    setSuggestions([]); // Clear suggestions after selection
+  };
+
+  const handleClearSearchCustomer = () => {
+    setInputCustomerSearch('');
+    setSelectedCustomerId(null); // Clear selected customer ID
+    setSelectedCustomerName('');
+    setSelectedCustomerPhone('');
+    setSuggestions([]);
+  };
 
   const handleAddBillTaiQuay = async (e) => {
     e.preventDefault(); // Ngăn chặn hành động mặc định của form
@@ -237,6 +210,31 @@ const Sell = () => {
     }
   };
 
+  const handleBillSelect = async (billId) => {
+    setSelectedBillId(billId); // Đặt ID hóa đơn được chọn
+
+    try {
+      const response = await axios.get(`/sale/invoice-details/bill/${billId}`);
+      if (response.status === 200) {
+        setInvoiceDetails(response.data); // Cập nhật chi tiết hóa đơn
+        // Cập nhật giỏ hàng từ chi tiết hóa đơn
+        const updatedCart = response.data.map((item) => ({
+          id: item.productDetailId,
+          name: item.productDetailName,
+          price: item.unitPrice,
+          quantity: item.quantity,
+        }));
+        setCart(updatedCart); // Cập nhật giỏ hàng
+      } else {
+        setInvoiceDetails([]);
+        setCart([]);
+      }
+    } catch (error) {
+      console.error("Error fetching invoice details:", error);
+      setInvoiceDetails([]);
+    }
+  };
+
   const deleteProductDetailToCart = async (id) => {
     try {
       // Fetch current product details to get the quantity
@@ -268,31 +266,6 @@ const Sell = () => {
     } catch (error) {
       console.error("Error deleting product detail:", error);
       // Consider displaying an error message to the user
-    }
-  };
-
-  const handleBillSelect = async (billId) => {
-    setSelectedBillId(billId); // Đặt ID hóa đơn được chọn
-
-    try {
-      const response = await axios.get(`/sale/invoice-details/bill/${billId}`);
-      if (response.status === 200) {
-        setInvoiceDetails(response.data); // Cập nhật chi tiết hóa đơn
-        // Cập nhật giỏ hàng từ chi tiết hóa đơn
-        const updatedCart = response.data.map((item) => ({
-          id: item.productDetailId,
-          name: item.productDetailName,
-          price: item.unitPrice,
-          quantity: item.quantity,
-        }));
-        setCart(updatedCart); // Cập nhật giỏ hàng
-      } else {
-        setInvoiceDetails([]);
-        setCart([]);
-      }
-    } catch (error) {
-      console.error("Error fetching invoice details:", error);
-      setInvoiceDetails([]);
     }
   };
 
@@ -402,50 +375,47 @@ const Sell = () => {
     }
   };
 
-  const resetFormFields = () => {
-    setInputCustomerSearch("");
-    setQuery("");
-    setNote("");
-  };
-
-  const handleChangeFormOfPurchase = (event) => {
-    setFormOfPurchase(event.target.value);
-  };
-
-  const handleChangeCustomerSearch = (event) => {
-    const value = event.target.value;
-    setInputCustomerSearch(value);
-
-    if (value) {
-      const filteredSuggestions = customers.filter(customer =>
-        customer.name.toLowerCase().includes(value.toLowerCase()) ||
-        customer.phone.includes(value) // Check for phone number as well
+  const fetchProductDetails = async () => {
+    try {
+      const response = await axios.get("/admin/productdetail");
+      setProductDetails(response.data);
+    } catch (error) {
+      console.error(
+        "Error fetching users: " + (error.response?.data || error.message)
       );
-      setSuggestions(filteredSuggestions);
-    } else {
-      setSuggestions([]);
     }
   };
 
-  const handleSuggestionClickCustomerSearch = (customer) => {
-    setInputCustomerSearch(customer.name);
-    setSelectedCustomerId(customer.id);
-    setSelectedCustomerName(customer.name); // Set selected customer name
-    setSelectedCustomerPhone(customer.phone); // Set selected customer phone
-    setSuggestions([]); // Clear suggestions after selection
+  const fetchBillTaiQuay = async () => {
+    try {
+      const response = await axios.get("/sale/bill");
+      setBillTaiQuay(response.data);
+      return response.data; // Return the fetched bills
+    } catch (error) {
+      console.error("Error fetching bill tai quay: ", error.response?.data || error.message);
+      return []; // Return an empty array on error
+    }
   };
 
-  const handleClearSearchCustomer = () => {
-    setInputCustomerSearch('');
-    setSelectedCustomerId(null); // Clear selected customer ID
-    setSelectedCustomerName('');
-    setSelectedCustomerPhone('');
-    setSuggestions([]);
+  const fetchData = async () => {
+    await fetchProductDetails();
+    const bills = await fetchBillTaiQuay();
+
+    // Automatically select the first bill if it exists
+    if (bills.length > 0) {
+      setSelectedBillId(bills[0].id);
+      handleBillSelect(bills[0].id);
+    }
   };
 
-  const totalAmount = invoiceDetails.reduce((acc, detail) => {
-    return acc + (detail.unitPrice * detail.quantity);
-  }, 0);
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.post('/admin/customers'); // Adjust the API endpoint as needed
+      setCustomers(response.data); // Assuming response.data contains the customer array
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    }
+  };
 
   const handleSellquickly = async (selectedBillId) => {
 
@@ -589,6 +559,36 @@ const Sell = () => {
       });
     }
   }
+
+  const filteredProductDetails = productDetails.filter(
+    (productDetail) =>
+      productDetail.name.toLowerCase().includes(query.toLowerCase()) ||
+      productDetail.code.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("vi-VN").format(price);
+  };
+
+  const scrollLeft = () => {
+    const billContainer = document.querySelector(".bill-container");
+    billContainer.scrollBy({ left: -200, behavior: "smooth" }); // Cuộn 200px sang trái
+  };
+
+  const scrollRight = () => {
+    const billContainer = document.querySelector(".bill-container");
+    billContainer.scrollBy({ left: 200, behavior: "smooth" }); // Cuộn 200px sang phải
+  };
+
+  const resetFormFields = () => {
+    setInputCustomerSearch("");
+    setQuery("");
+    setNote("");
+  };
+
+  const totalAmount = invoiceDetails.reduce((acc, detail) => {
+    return acc + (detail.unitPrice * detail.quantity);
+  }, 0);
 
   /////////////////////////////////////////////////////////////////////////////
   const [listTinh, setListTinh] = useState([]);
@@ -1064,8 +1064,6 @@ const Sell = () => {
             </div>
           </div>
 
-
-
           {formOfPurchase === '0' && (
             <div className="col-md-4">
               <div className="card card-infomation border-0 p-3 mt-4">
@@ -1256,7 +1254,6 @@ const Sell = () => {
               </div>
             </div>
           )}
-
 
         </div>
       </div>
