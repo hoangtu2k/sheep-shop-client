@@ -63,15 +63,14 @@ const SignUp = () => {
             <div className="loginBox">
               <div className="logo text-center">
                 <img src={Logo} width="60px" alt="" />
-                <h5 className="font-weight-bold">Register a new account</h5>
+                <h5 className="font-weight-bold">Đăng ký tài khoản mới</h5>
               </div>
 
               <div className="wrapper mt-3 card border ">
                 <form>
                   <div
-                    className={`form-group position-relative ${
-                      inputIndex === 0 && "focus"
-                    }`}
+                    className={`form-group position-relative ${inputIndex === 0 && "focus"
+                      }`}
                   >
                     <span className="icon">
                       <FaUserCircle />
@@ -79,7 +78,7 @@ const SignUp = () => {
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="enter your name"
+                      placeholder="Nhập họ tên"
                       onFocus={() => focusInput(0)}
                       onBlur={() => setInputIndex(null)}
                       autoFocus
@@ -87,9 +86,8 @@ const SignUp = () => {
                   </div>
 
                   <div
-                    className={`form-group position-relative ${
-                      inputIndex === 1 && "focus"
-                    }`}
+                    className={`form-group position-relative ${inputIndex === 1 && "focus"
+                      }`}
                   >
                     <span className="icon">
                       <MdEmail />
@@ -97,16 +95,15 @@ const SignUp = () => {
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="enter your email"
+                      placeholder="Nhập email"
                       onFocus={() => focusInput(1)}
                       onBlur={() => setInputIndex(null)}
                     />
                   </div>
 
                   <div
-                    className={`form-group position-relative ${
-                      inputIndex === 2 && "focus"
-                    }`}
+                    className={`form-group position-relative ${inputIndex === 2 && "focus"
+                      }`}
                   >
                     <span className="icon">
                       <RiLockPasswordFill />
@@ -114,7 +111,7 @@ const SignUp = () => {
                     <input
                       type={`${isShowPassword === true ? "text" : "password"}`}
                       className="form-control"
-                      placeholder="enter your password"
+                      placeholder="Nhập mật khẩu"
                       onFocus={() => focusInput(2)}
                       onBlur={() => setInputIndex(null)}
                     />
@@ -127,19 +124,17 @@ const SignUp = () => {
                   </div>
 
                   <div
-                    className={`form-group position-relative ${
-                      inputIndex === 3 && "focus"
-                    }`}
+                    className={`form-group position-relative ${inputIndex === 3 && "focus"
+                      }`}
                   >
                     <span className="icon">
                       <IoShieldCheckmarkSharp />
                     </span>
                     <input
-                      type={`${
-                        isShowConfirmPassword === true ? "text" : "password"
-                      }`}
+                      type={`${isShowConfirmPassword === true ? "text" : "password"
+                        }`}
                       className="form-control"
-                      placeholder="confirm your password"
+                      placeholder="Nhập lại mật khẩu"
                       onFocus={() => focusInput(3)}
                       onBlur={() => setInputIndex(null)}
                     />
@@ -160,12 +155,12 @@ const SignUp = () => {
                   <FormControlLabel
                     required
                     control={<CheckBox />}
-                    label="I agree to the all Terms & Condiotions"
+                    label="Tôi đồng ý với tất cả các Điều khoản & Điều kiện"
                   />
 
                   <div className="form-group">
                     <Button className="btn-blue btn-lg w-100 btn-big">
-                      Sign Up
+                      Đăng ký
                     </Button>
                   </div>
 
@@ -180,16 +175,15 @@ const SignUp = () => {
                       variant="outlined"
                       className="w-100 btn-lg btn-big loginWithGoogle"
                     >
-                      <img src={googleIcon} width="25px" alt="" /> &nbsp; Sign
-                      In with Google
+                      <img src={googleIcon} width="25px" alt="" /> &nbsp; Đăng ký với Google
                     </Button>
                   </div>
                 </form>
 
                 <span className="text-center d-block mt-3">
-                  Don't have an account?
+                  Bạn đã có tài khoản?
                   <Link to={"/login"} className="link color ml-2">
-                    Sign In
+                    Đăng nhập ngay?
                   </Link>
                 </span>
               </div>

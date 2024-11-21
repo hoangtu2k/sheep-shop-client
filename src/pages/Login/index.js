@@ -28,7 +28,7 @@ const Login = () => {
 
   useEffect(() => {
     context.setisHideSidebarAndHeader(true);
-  }, );
+  },);
 
   const focusInput = (index) => {
     setInputIndex(index);
@@ -91,6 +91,56 @@ const Login = () => {
     }
   };
 
+  const handleSubmitSale = async (e) => {
+    e.preventDefault();
+    let hasError = false;
+
+    if (!username) {
+      setUsernameError('Tên tài khoản không được để trống.');
+      hasError = true;
+    } else {
+      setUsernameError('');
+    }
+
+    if (!password) {
+      setPasswordError('Mật khẩu không được để trống.');
+      hasError = true;
+    } else {
+      setPasswordError('');
+    }
+
+    if (hasError) return;
+
+    try {
+      // Bước 1: Gửi yêu cầu đăng nhập
+      const response = await axios.post('/auth/admin/login', {
+        username,
+        password,
+      });
+
+      if (response.status === 200) {
+        const token = response.data.token;
+
+        // Bước 2: Gửi yêu cầu để lấy thông tin người dùng
+        const userResponse = await axios.get('/admin/users', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        // Lưu thông tin người dùng vào context
+        login(token, userResponse.data); // Pass both token and user data
+        navigate('/sale'); // Điều hướng đến trang chính
+      }
+
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        setPasswordError('Tên tài khoản hoặc mật khẩu không hợp lệ.');
+      } else {
+        setPasswordError('Đăng nhập không thành công. Vui lòng thử lại.');
+      }
+    }
+  };
+
 
   return (
     <>
@@ -103,11 +153,10 @@ const Login = () => {
           </div>
 
           <div className="wrapper mt-3 card border ">
-            <form onSubmit={handleSubmit}>
+            <form>
               <div
-                className={`form-group position-relative ${
-                  inputIndex === 0 && "focus"
-                }`}
+                className={`form-group position-relative ${inputIndex === 0 && "focus"
+                  }`}
               >
                 <span className="icon">
                   <MdEmail />
@@ -117,16 +166,15 @@ const Login = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="form-control"
-                  placeholder="enter your email"
+                  placeholder="Nhập email"
                   onFocus={() => focusInput(0)}
                   onBlur={() => setInputIndex(null)}
                 />
-                 {usernameError && <p style={{ color: 'red' }}>{usernameError}</p>}
+                {usernameError && <p style={{ color: 'red' }}>{usernameError}</p>}
               </div>
               <div
-                className={`form-group position-relative ${
-                  inputIndex === 1 && "focus"
-                }`}
+                className={`form-group position-relative ${inputIndex === 1 && "focus"
+                  }`}
               >
                 <span className="icon">
                   <RiLockPasswordFill />
@@ -136,7 +184,7 @@ const Login = () => {
                   className="form-control"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="enter your password"
+                  placeholder="Nhập mật khẩu"
                   onFocus={() => focusInput(1)}
                   onBlur={() => setInputIndex(null)}
                 />
@@ -150,14 +198,23 @@ const Login = () => {
               </div>
 
               <div className="form-group">
-                <Button className="btn-blue btn-lg w-100 btn-big" type="submit">
-                  Sign In
-                </Button>
+                <div className="row">
+                  <div className="col-md-6">
+                    <Button className="btn-blue btn-lg w-100 " type="submit" onClick={handleSubmit}>
+                      Quản lý
+                    </Button>
+                  </div>
+                  <div className="col-md-6">
+                    <Button className="btn-blue btn-lg w-100 " type="submit" onClick={handleSubmitSale}>
+                      Bán hàng
+                    </Button>
+                  </div>
+                </div>
               </div>
 
               <div className="form-group text-center mb-0">
                 <Link to={"/forgot-password"} className="link">
-                  FORGOT PASSWORD
+                  Quên mật khẩu
                 </Link>
                 <div className="d-flex align-items-center justify-content-center or mt-3 mb-3">
                   <span className="line"></span>
@@ -169,8 +226,7 @@ const Login = () => {
                   variant="outlined"
                   className="w-100 btn-lg btn-big loginWithGoogle"
                 >
-                  <img src={googleIcon} width="25px" alt="logo" /> &nbsp; Sign In
-                  with Google
+                  <img src={googleIcon} width="25px" alt="logo" /> &nbsp; Đăng nhập với Google
                 </Button>
               </div>
             </form>
@@ -178,9 +234,9 @@ const Login = () => {
 
           <div className="wrapper mt-3 card border footer p-3">
             <span className="text-center">
-              Don't have an account?
+              Bạn chưa có tài khoản?
               <Link to={"/admin/signUp"} className="link color ml-2">
-                Register
+                Đăng ký ngay
               </Link>
             </span>
           </div>

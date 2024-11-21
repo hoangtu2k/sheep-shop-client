@@ -21,7 +21,8 @@ const publicRouters = [
         { path: '/admin/', component: Dashboard , private: true},
         { path: '/admin/dashboard', component: Dashboard, private: true },
         
-        { path: '/admin/products', component: Products },
+        { path: '/admin/products', component: Products , private: true},
+        
         { path: '/admin/product/details', component: ProductDetails},
         { path: '/admin/product/upload', component: ProductUpload },
 
