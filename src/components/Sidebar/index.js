@@ -105,7 +105,7 @@ const Sidebar = () => {
                         <Link to="/sale">
                             <Button className={`w-100 ${activeTab === 5 ? 'active': ''}`}>
                                 <span className="icon"><FaShoppingCart /></span>
-                                Bán online
+                                Bán hàng
                             </Button>
                         </Link>
                     </li>
